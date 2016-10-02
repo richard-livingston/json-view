@@ -1,0 +1,6 @@
+{
+  "name": "json-view",
+  "version": "0.1.0",
+  "files": ["JSONView.js", "devtools.css", "example"],
+  "main": "JSONView.js"
+}

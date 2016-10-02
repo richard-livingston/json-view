@@ -1,0 +1,88 @@
+.jsonView{
+    font-family: Consolas, "Lucida Console", Menlo, "dejavu sans mono", monospace;
+    font-size: 14px;
+    line-height: 12px;
+    padding: 2px;
+    cursor: default;
+    color: rgb(66, 66, 66);
+    -webkit-user-select: none;
+}
+
+.jsonView .name, .jsonView .separator, .jsonView .value{
+    display: inline;
+}
+
+.jsonView .name{
+    color: rgb(136, 19, 145);
+}
+
+.jsonView .separator {
+    padding-right: 5px;
+}
+
+.jsonView.null>.value{
+    color: rgb(128, 128, 128);
+}
+
+.jsonView.boolean>.value, .jsonView.number>.value{
+    color: rgb(28, 0, 207);
+}
+
+.jsonView.string>.value:not(.edit):before, .jsonView.string>.value:not(.edit):after{
+    content: "\"";
+}
+
+.jsonView.string>.value {
+    color: rgb(196, 26, 22);
+}
+
+.jsonView .name:hover, .jsonView .value:hover{
+    background-color: rgba(56, 121, 217, 0.1);
+}
+
+.jsonView .children{
+    padding-left: 12px;
+}
+
+.jsonView.collapsed .children{
+    display: none;
+}
+
+.jsonView>.name:before{
+    content: "\00A0";
+    min-width: 12px;
+    padding-right: 5px;
+    color: rgb(110, 110, 110);
+}
+
+.jsonView.object.collapsed>.name:before, .jsonView.array.collapsed>.name:before{
+    content: '\25B6';
+}
+
+.jsonView.object.expanded>.name:before, .jsonView.array.expanded>.name:before{
+    content: '\25BC';
+}
+
+.jsonView .value.edit{
+    padding: 0px 5px 0px 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    color: rgb(0, 0, 0);
+    background-color: transparent;
+}
+
+.jsonView .value.edit br{
+    display: none;
+}
+
+.jsonView .value.edit *{
+    display: inline;
+    white-space: nowrap;
+}
+
+.jsonView input{
+    display: inline;
+    width: 100%;
+    font-family: inherit;
+    font-size: inherit;
+}
