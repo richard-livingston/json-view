@@ -2,5 +2,21 @@
   "name": "json-view",
   "version": "0.1.0",
   "files": ["JSONView.js", "devtools.css", "example"],
-  "main": "JSONView.js"
+  "main": "JSONView.js",
+
+  "author" : "Richard Livingston <richard.npm@logoapps.com>",
+  "repository" : {
+    "type" : "git",
+    "url" : "https://github.com/richard-livingston/json-view.git"
+  },
+  "homepage" : "https://richard-livingston.github.io/json-view/",
+  
+  "keywords" : [
+	"json",
+	"viewer",
+	"editor",
+	"view",
+	"edit",
+	"devtools"
+  ]
 }
