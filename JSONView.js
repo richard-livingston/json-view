@@ -194,7 +194,7 @@ function JSONView(opts){
 
 
     function edit(){
-        if(valueDiv.classList.contains('edit')){
+        if(!editable || valueDiv.classList.contains('edit')){
             return;
         }
 
