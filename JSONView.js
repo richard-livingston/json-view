@@ -57,7 +57,7 @@ function JSONView(opts){
                 return value;
             },
             set : function(_value){
-                if(value == _value){
+                if(value === _value){
                     return;
                 }
 
