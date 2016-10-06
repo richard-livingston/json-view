@@ -128,7 +128,7 @@ function JSONView(opts){
     valueDiv.addEventListener('click', toggleCollapse);
     valueDiv.addEventListener('dblclick', edit);
     valueDiv.addEventListener('blur', editStop);
-    valueDiv.addEventListener('keydown', editStopOnKey);
+    valueDiv.addEventListener('keydown', editOnKey);
 
 
     function refresh(){
@@ -229,10 +229,26 @@ function JSONView(opts){
     }
 
 
-    function editStopOnKey(event){
-        if([13, 38, 40].indexOf(event.keyCode) > -1){ // enter, up, down
-            valueDiv.blur();
+    function editOnKey(event){
+        var enter = 13,
+            up = 38,
+            down = 40,
+            newValue;
+
+        if([enter, down, up].indexOf(event.keyCode)== -1){
+            return;
         }
+
+        if(type == 'number' && enter != event.keyCode){
+            newValue = Number(valueDiv.innerText) + (down == event.keyCode ? -1 : 1);
+
+            if(!isNaN(newValue)){
+                valueDiv.innerText = newValue;
+                return;
+            }
+        }
+
+        valueDiv.blur();
     }
 
 
