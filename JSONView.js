@@ -207,11 +207,20 @@ function JSONView(opts){
 
 
     function editStop(){
+        var newValue;
+
         valueDiv.classList.remove('edit');
         valueDiv.removeAttribute('contenteditable');
 
         try{
-            self.value = parse(valueDiv.innerText);
+            newValue = parse(valueDiv.innerText);
+
+            if(value === newValue){
+                refresh();
+            }
+            else{
+                self.value = newValue;
+            }
         }
         catch(err){
             refresh();
