@@ -220,10 +220,12 @@ function JSONView(opts){
         expand();
 
 
-        // TODO - Think of another way to do this, user can still implicity reference globals
+        // TODO - Think of another way to do this, user can't reference globals, but can still run code in here
         function parse(){
-            return (new Function('window', '"use strict"; return JSON.parse(JSON.stringify(' + valueDiv.innerText + '));'))
-                .bind(null, {})
+            var globals = Object.keys(window);
+
+            return (new Function(globals.join(','), '"use strict"; return JSON.parse(JSON.stringify(' + valueDiv.innerText + '));'))
+                .bind(undefined, new Array(globals.length))
                 ();
         }
     }
