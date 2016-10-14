@@ -17,7 +17,7 @@ function JSONView(opts){
     EE.call(this);
     var self = this;
 
-    var name, value, type, editable;
+    var name, value, type, editable, children = [];
 
     var containerDiv = document.createElement('div'),
         nameDiv = document.createElement('div'),
@@ -69,7 +69,7 @@ function JSONView(opts){
                 containerDiv.classList.add(type);
                 value = _value;
                 refresh();
-                self.emit('change');
+                self.emit('change', name, value);
             },
             enumerable : true
         },
@@ -132,9 +132,7 @@ function JSONView(opts){
 
 
     function refresh(){
-        while(childrenDiv.firstChild){
-            childrenDiv.removeChild(childrenDiv.firstChild);
-        }
+        removeChildren();
 
         switch(type){
             case 'object':
@@ -142,23 +140,25 @@ function JSONView(opts){
                 valueDiv.innerText = type == 'object' ? 'Object' : 'Array[' + value.length + ']';
 
                 Object.keys(value).forEach(function(k) {
-                    var view;
+                    var child;
 
                     try {
-                        view = new JSONView({
+                        child = new JSONView({
                             name: k,
                             value: value[k]
                         });
 
-                        view.on('change', function(){
-                            value[k] = view.value;
+                        child.on('change', function(keyPath, newValue){
+                            value[k] = newValue;
+                            self.emit('change', name + '.' + keyPath, newValue);
                         });
                     }
                     catch (err) {
                         return;
                     }
 
-                    childrenDiv.appendChild(view.dom);
+                    childrenDiv.appendChild(child.dom);
+                    children.push(child);
                 });
                 break;
 
@@ -172,6 +172,17 @@ function JSONView(opts){
         }
 
         expand();
+
+
+        function removeChildren(){
+            var child;
+
+            while(children.length){
+                child = children.pop();
+                child.removeAllListeners();
+                childrenDiv.removeChild(child.dom);
+            }
+        }
     }
 
 
