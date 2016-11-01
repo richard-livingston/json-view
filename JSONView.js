@@ -265,7 +265,7 @@ function JSONView(opts){
             newValue = Number(valueDiv.innerText) + (down == event.keyCode ? -1 : 1);
 
             if(!isNaN(newValue)){
-                valueDiv.innerText = newValue;
+                self.value = newValue;
                 return;
             }
         }
