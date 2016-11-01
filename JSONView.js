@@ -262,7 +262,7 @@ function JSONView(opts){
         }
 
         if(type == 'number' && enter != event.keyCode){
-            newValue = Number(valueDiv.innerText) + (down == event.keyCode ? -1 : 1);
+            newValue = Number(valueDiv.innerText) + ((down == event.keyCode ? -1 : 1) * (event.shiftKey ? 10 : 1));
 
             if(!isNaN(newValue)){
                 self.value = newValue;
