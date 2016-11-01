@@ -186,15 +186,27 @@ function JSONView(opts){
     }
 
 
-    function collapse(){
+    function collapse(recursive){
         containerDiv.classList.remove('expanded');
         containerDiv.classList.add('collapsed');
+
+        if(recursive){
+            children.forEach(function(child){
+                child.collapse(true);
+            });
+        }
     }
 
 
-    function expand(){
+    function expand(recursive){
         containerDiv.classList.remove('collapsed');
         containerDiv.classList.add('expanded');
+
+        if(recursive){
+            children.forEach(function(child){
+                child.expand(true);
+            });
+        }
     }
 
 
