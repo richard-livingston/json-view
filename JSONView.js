@@ -23,20 +23,28 @@ function JSONView(opts){
         nameDiv = document.createElement('div'),
         separatorDiv = document.createElement('div'),
         valueDiv = document.createElement('div'),
-        childrenDiv = document.createElement('div');
+        childrenDiv = document.createElement('div'),
+        removeDiv = document.createElement('div'),
+        insertDiv = document.createElement('div');
 
     containerDiv.appendChild(nameDiv);
     containerDiv.appendChild(separatorDiv);
     containerDiv.appendChild(valueDiv);
+    containerDiv.appendChild(removeDiv);
     containerDiv.appendChild(childrenDiv);
+    containerDiv.appendChild(insertDiv);
 
     containerDiv.className = 'jsonView';
     nameDiv.className = 'name';
     separatorDiv.className = 'separator';
     valueDiv.className = 'value';
     childrenDiv.className = 'children';
+    removeDiv.className = 'remove';
+    insertDiv.className = 'insert';
 
     separatorDiv.innerText = ':';
+    removeDiv.innerText = '✕';
+    insertDiv.innerText = '+';
 
 
     Object.defineProperties(self, {
@@ -48,6 +56,7 @@ function JSONView(opts){
             set : function(value){
                 name = value;
                 nameDiv.innerText = name;
+                self.emit('change', name, value);
             },
             enumerable : true
         },
@@ -89,7 +98,8 @@ function JSONView(opts){
                 editable = !!value;
 
                 if(!editable){
-                    editStop();
+                    editNameStop();
+                    editValueStop();
                 }
             },
             enumerable : true
@@ -105,6 +115,11 @@ function JSONView(opts){
             enumerable : true
         },
 
+        remove : {
+            value : remove,
+            enumerable : true
+        },
+
         collapse : {
             value : collapse,
             enumerable : true
@@ -112,6 +127,11 @@ function JSONView(opts){
 
         expand : {
             value : expand,
+            enumerable : true
+        },
+
+        editName : {
+            value : editName,
             enumerable : true
         }
 
@@ -125,10 +145,17 @@ function JSONView(opts){
     self.editable = 'editable' in opts ? !!opts.editable : true;
 
     nameDiv.addEventListener('click', toggleCollapse);
+    nameDiv.addEventListener('dblclick', editName);
+    nameDiv.addEventListener('blur', editNameStop);
+    nameDiv.addEventListener('keydown', editNameOnKey);
+
     valueDiv.addEventListener('click', toggleCollapse);
-    valueDiv.addEventListener('dblclick', edit);
-    valueDiv.addEventListener('blur', editStop);
-    valueDiv.addEventListener('keydown', editOnKey);
+    valueDiv.addEventListener('dblclick', editValue);
+    valueDiv.addEventListener('blur', editValueStop);
+    valueDiv.addEventListener('keydown', editValueOnKey);
+
+    removeDiv.addEventListener('click', remove);
+    insertDiv.addEventListener('click', insertNewChild);
 
 
     function refresh(){
@@ -140,25 +167,7 @@ function JSONView(opts){
                 valueDiv.innerText = type == 'object' ? 'Object' : 'Array[' + value.length + ']';
 
                 Object.keys(value).forEach(function(k) {
-                    var child;
-
-                    try {
-                        child = new JSONView({
-                            name: k,
-                            value: value[k]
-                        });
-
-                        child.on('change', function(keyPath, newValue){
-                            value[k] = newValue;
-                            self.emit('change', name + '.' + keyPath, newValue);
-                        });
-                    }
-                    catch (err) {
-                        return;
-                    }
-
-                    childrenDiv.appendChild(child.dom);
-                    children.push(child);
+                    insertChild(k, value[k]);
                 });
                 break;
 
@@ -172,16 +181,109 @@ function JSONView(opts){
         }
 
         expand();
+    }
 
 
-        function removeChildren(){
-            var child;
+    function insertNewChild(){
+        var child;
 
-            while(children.length){
-                child = children.pop();
-                child.removeAllListeners();
-                childrenDiv.removeChild(child.dom);
+        if(type == 'array'){
+            child = insertChild(value.length, null);
+            child.editable = false;
+        }
+        else{
+            child = insertChild('', null);
+
+            if(child){
+                child.editName();
             }
+        }
+    }
+
+
+    function insertChild(childName, childValue){
+        var child;
+
+        try {
+            child = new JSONView({
+                name: childName,
+                value: childValue
+            });
+
+            child.on('change', function(keyPath, newValue, recursed){
+                if(!recursed && child.name in value){
+                    value[child.name] = newValue;
+                }
+
+                self.emit('change', name + '.' + keyPath, newValue, true);
+            });
+
+            child.on('rename', function(oldName, newName){
+                if(newName in value || newName == ''){
+                    child.name = oldName;
+
+                    if(oldName == ''){
+                        child.remove();
+                    }
+                }
+                else{
+                    child.name = newName;
+                    value[newName] = child.value;
+                    deleteKey(oldName);
+                }
+            });
+
+            child.once('remove', function(){
+                deleteKey(child.name);
+                self.emit('change', name, value);
+            });
+
+            childrenDiv.appendChild(child.dom);
+            children.push(child);
+
+            if(childName != ''){
+                value[childName] = childValue;
+            }
+        }
+        catch (err) {
+            return;
+        }
+
+        return child;
+
+
+        function deleteKey(key){
+            var numericKey;
+
+            if(type == 'object'){
+                delete value[key];
+            }
+            else if(type == 'array' && !isNaN(key)){
+                numericKey = Number(key);
+
+                if(String(numericKey) === String(key)){
+                    value.splice(key, 1);
+                }
+            }
+
+            refresh();
+        }
+    }
+
+
+    function remove(){
+        self.emit('remove');
+        removeChildren();
+    }
+
+
+    function removeChildren(){
+        var child;
+
+        while(children.length){
+            child = children.pop();
+            child.removeAllListeners();
+            childrenDiv.removeChild(child.dom);
         }
     }
 
@@ -216,20 +318,50 @@ function JSONView(opts){
     }
 
 
-    function edit(){
-        if(!editable || valueDiv.classList.contains('edit')){
-            return;
-        }
-
-        collapse();
-        valueDiv.classList.add('edit');
-        valueDiv.setAttribute('contenteditable', true);
-        valueDiv.focus();
-        document.execCommand('selectAll', false, null);
+    function editName(){
+        editDiv(nameDiv);
     }
 
 
-    function editStop(){
+    function editNameStop(){
+        var oldName = name,
+            newName = nameDiv.innerText;
+
+        nameDiv.classList.remove('edit');
+        nameDiv.removeAttribute('contenteditable');
+
+        if(newName == oldName && newName != ''){
+            return;
+        }
+
+        name = newName;
+        self.emit('rename', oldName, newName);
+    }
+
+
+    function editNameOnKey(event){
+        var enter = 13,
+            tab = 9;
+
+        switch(event.keyCode){
+            case enter:
+                nameDiv.blur();
+                break;
+
+            case tab:
+                editDiv(valueDiv);
+                event.preventDefault();
+                break;
+        }
+    }
+
+
+    function editValue(){
+        editDiv(valueDiv);
+    }
+
+
+    function editValueStop(){
         var newValue;
 
         valueDiv.classList.remove('edit');
@@ -263,7 +395,7 @@ function JSONView(opts){
     }
 
 
-    function editOnKey(event){
+    function editValueOnKey(event){
         var enter = 13,
             up = 38,
             down = 40,
@@ -283,6 +415,19 @@ function JSONView(opts){
         }
 
         valueDiv.blur();
+    }
+
+
+    function editDiv(div){
+        if(!editable || div.classList.contains('edit')){
+            return;
+        }
+
+        collapse();
+        div.classList.add('edit');
+        div.setAttribute('contenteditable', true);
+        div.focus();
+        document.execCommand('selectAll', false, null);
     }
 
 

@@ -86,3 +86,38 @@
     font-family: inherit;
     font-size: inherit;
 }
+
+.jsonView .remove{
+    opacity: 0;
+    display: inline;
+    padding: 3px;
+    margin-left: 20px;
+    cursor: pointer;
+    color: rgb(150, 150, 150);
+}
+
+.jsonView .value:hover+.remove, .jsonView .remove:hover{
+    opacity: 1;
+}
+
+.jsonView .remove:hover{
+    color: rgb(0, 0, 0);
+    background: rgb(220, 220, 220);
+}
+
+.jsonView .insert{
+    display: none;
+    color: rgb(150, 150, 150);
+    cursor: pointer;
+}
+
+.jsonView.expanded.object>.insert, .jsonView.expanded.array>.insert{
+    display: inline-block;
+    margin-left: 20px;
+    padding: 3px;
+}
+
+.jsonView .insert:hover{
+    color: rgb(0, 0, 0);
+    background: rgb(220, 220, 220);
+}
