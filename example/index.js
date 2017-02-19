@@ -4,19 +4,22 @@
 
 var JSONView = require('json-view');
 
-var view = new JSONView({
-    name : 'example',
-    value : {
-        hello : 'world',
-        doubleClick : 'me to edit',
-        a : null,
-        b : true,
-        c : false,
-        d : 1,
-        e : {nested : 'object'},
-        f : [1,2,3]
-    }
+var view = new JSONView('example', {
+    hello : 'world',
+    doubleClick : 'me to edit',
+    a : null,
+    b : true,
+    c : false,
+    d : 1,
+    e : {nested : 'object'},
+    f : [1,2,3]
 });
 
+view.on('change', function(key, oldValue, newValue){
+    console.log('change', key, oldValue, '=>', newValue);
+});
+
+view.expand(true);
+
 document.body.appendChild(view.dom);
-window.data = view.value;
+window.view = view;

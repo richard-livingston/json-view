@@ -1,459 +1,582 @@
 /**
- * Created by r1ch4 on 01/10/2016.
+ * Created by richard.livingston on 18/02/2017.
  */
-
-'use strict'
-
+'use strict';
 
 var util = require('util'),
-    EE = require('events').EventEmitter;
+	EE = require('events').EventEmitter;
 
 
-util.inherits(JSONView, EE);
 module.exports = JSONView;
+util.inherits(JSONView, EE);
+
+
+function JSONView(name_, value_){
+	var self = this;
+
+	EE.call(self);
+
+	if(arguments.length < 2){
+		value_ = name_;
+		name_ = undefined;
+	}
+
+	var name, value, type,
+		domEventListeners = [], children = [], expanded = false,
+		edittingName = false, edittingValue = false,
+		nameEditable = true, valueEditable = true;
+
+	var dom = {
+		container : document.createElement('div'),
+		collapseExpand : document.createElement('div'),
+		name : document.createElement('div'),
+		separator : document.createElement('div'),
+		value : document.createElement('div'),
+		delete : document.createElement('div'),
+		children : document.createElement('div'),
+		insert : document.createElement('div')
+	};
 
+
+	Object.defineProperties(self, {
 
-function JSONView(opts){
-    EE.call(this);
-    var self = this;
-
-    var name, value, type, editable, children = [];
-
-    var containerDiv = document.createElement('div'),
-        nameDiv = document.createElement('div'),
-        separatorDiv = document.createElement('div'),
-        valueDiv = document.createElement('div'),
-        childrenDiv = document.createElement('div'),
-        removeDiv = document.createElement('div'),
-        insertDiv = document.createElement('div');
-
-    containerDiv.appendChild(nameDiv);
-    containerDiv.appendChild(separatorDiv);
-    containerDiv.appendChild(valueDiv);
-    containerDiv.appendChild(removeDiv);
-    containerDiv.appendChild(childrenDiv);
-    containerDiv.appendChild(insertDiv);
-
-    containerDiv.className = 'jsonView';
-    nameDiv.className = 'name';
-    separatorDiv.className = 'separator';
-    valueDiv.className = 'value';
-    childrenDiv.className = 'children';
-    removeDiv.className = 'remove';
-    insertDiv.className = 'insert';
-
-    separatorDiv.innerText = ':';
-    removeDiv.innerText = '✕';
-    insertDiv.innerText = '+';
-
-
-    Object.defineProperties(self, {
-
-        name : {
-            get : function(){
-                return name;
-            },
-            set : function(value){
-                name = value;
-                nameDiv.innerText = name;
-                self.emit('change', name, value);
-            },
-            enumerable : true
-        },
-
-        value : {
-            get : function(){
-                return value;
-            },
-            set : function(_value){
-                if(value === _value){
-                    return;
-                }
-
-                if(type){
-                    containerDiv.classList.remove(type);
-                }
-                type = getType(_value);
-
-                containerDiv.classList.add(type);
-                value = _value;
-                refresh();
-                self.emit('change', name, value);
-            },
-            enumerable : true
-        },
-
-        type : {
-            get : function(){
-                return type;
-            },
-            enumerable : true
-        },
-
-        editable : {
-            get : function(){
-                return editable;
-            },
-            set : function(value){
-                editable = !!value;
-
-                if(!editable){
-                    editNameStop();
-                    editValueStop();
-                }
-            },
-            enumerable : true
-        },
-
-        dom : {
-            value : containerDiv,
-            enumerable : true
-        },
-
-        refresh : {
-            value : refresh,
-            enumerable : true
-        },
+		dom : {
+			value : dom.container,
+			enumerable : true
+		},
 
-        remove : {
-            value : remove,
-            enumerable : true
-        },
+		name : {
+			get : function(){
+				return name;
+			},
+
+			set : setName,
+			enumerable : true
+		},
+
+		value : {
+			get : function(){
+				return value;
+			},
+
+			set : setValue,
+			enumerable : true
+		},
 
-        collapse : {
-            value : collapse,
-            enumerable : true
-        },
+		type : {
+			get : function(){
+				return type;
+			},
 
-        expand : {
-            value : expand,
-            enumerable : true
-        },
-
-        editName : {
-            value : editName,
-            enumerable : true
-        }
-
-    });
-
-
-    opts = opts || {};
-
-    self.name = opts.name;
-    self.value = opts.value;
-    self.editable = 'editable' in opts ? !!opts.editable : true;
-
-    nameDiv.addEventListener('click', toggleCollapse);
-    nameDiv.addEventListener('dblclick', editName);
-    nameDiv.addEventListener('blur', editNameStop);
-    nameDiv.addEventListener('keydown', editNameOnKey);
-
-    valueDiv.addEventListener('click', toggleCollapse);
-    valueDiv.addEventListener('dblclick', editValue);
-    valueDiv.addEventListener('blur', editValueStop);
-    valueDiv.addEventListener('keydown', editValueOnKey);
-
-    removeDiv.addEventListener('click', remove);
-    insertDiv.addEventListener('click', insertNewChild);
-
-
-    function refresh(){
-        removeChildren();
-
-        switch(type){
-            case 'object':
-            case 'array':
-                valueDiv.innerText = type == 'object' ? 'Object' : 'Array[' + value.length + ']';
-
-                Object.keys(value).forEach(function(k) {
-                    insertChild(k, value[k]);
-                });
-                break;
-
-            case 'null':
-                valueDiv.innerText = 'null';
-                break;
-
-            default:
-                valueDiv.innerText = value;
-                break;
-        }
+			enumerable : true
+		},
 
-        expand();
-    }
+		nameEditable : {
+			get : function(){
+				return nameEditable;
+			},
 
+			set : function(value){
+				nameEditable = !!value;
+			},
 
-    function insertNewChild(){
-        var child;
-
-        if(type == 'array'){
-            child = insertChild(value.length, null);
-            child.editable = false;
-        }
-        else{
-            child = insertChild('', null);
+			enumerable : true
+		},
 
-            if(child){
-                child.editName();
-            }
-        }
-    }
+		valueEditable : {
+			get : function(){
+				return valueEditable;
+			},
 
+			set : function(value){
+				valueEditable = !!value;
+			},
 
-    function insertChild(childName, childValue){
-        var child;
+			enumerable : true
+		},
 
-        try {
-            child = new JSONView({
-                name: childName,
-                value: childValue
-            });
-
-            child.on('change', function(keyPath, newValue, recursed){
-                if(!recursed && child.name in value){
-                    value[child.name] = newValue;
-                }
+		refresh : {
+			value : refresh,
+			enumerable : true
+		},
 
-                self.emit('change', name + '.' + keyPath, newValue, true);
-            });
+		collapse : {
+			value : collapse,
+			enumerable : true
+		},
 
-            child.on('rename', function(oldName, newName){
-                if(newName in value || newName == ''){
-                    child.name = oldName;
+		expand : {
+			value : expand,
+			enumerable : true
+		},
 
-                    if(oldName == ''){
-                        child.remove();
-                    }
-                }
-                else{
-                    child.name = newName;
-                    value[newName] = child.value;
-                    deleteKey(oldName);
-                }
-            });
+		destroy : {
+			value : destroy,
+			enumerable : true
+		},
 
-            child.once('remove', function(){
-                deleteKey(child.name);
-                self.emit('change', name, value);
-            });
+		editName : {
+			value : editField.bind(null, 'name'),
+			enumerable : true
+		},
 
-            childrenDiv.appendChild(child.dom);
-            children.push(child);
+		editValue : {
+			value : editField.bind(null, 'value'),
+			enumerable : true
+		}
 
-            if(childName != ''){
-                value[childName] = childValue;
-            }
-        }
-        catch (err) {
-            return;
-        }
+	});
 
-        return child;
 
+	Object.keys(dom).forEach(function(k){
+		var element = dom[k];
 
-        function deleteKey(key){
-            var numericKey;
+		if(k == 'container'){
+			return;
+		}
+
+		element.className = k;
+		dom.container.appendChild(element);
+	});
+
+	dom.container.className = 'jsonView';
+
+	addDomEventListener(dom.collapseExpand, 'click', onCollapseExpandClick);
+	addDomEventListener(dom.value, 'click', expand);
+	addDomEventListener(dom.name, 'click', expand);
 
-            if(type == 'object'){
-                delete value[key];
-            }
-            else if(type == 'array' && !isNaN(key)){
-                numericKey = Number(key);
+	addDomEventListener(dom.name, 'dblclick', editField.bind(null, 'name'));
+	addDomEventListener(dom.name, 'blur', editFieldStop.bind(null, 'name'));
+	addDomEventListener(dom.name, 'keypress', editFieldKeyPressed.bind(null, 'name'));
+	addDomEventListener(dom.name, 'keydown', editFieldTabPressed.bind(null, 'name'));
+
+	addDomEventListener(dom.value, 'dblclick', editField.bind(null, 'value'));
+	addDomEventListener(dom.value, 'blur', editFieldStop.bind(null, 'value'));
+	addDomEventListener(dom.value, 'keypress', editFieldKeyPressed.bind(null, 'value'));
+	addDomEventListener(dom.value, 'keydown', editFieldTabPressed.bind(null, 'value'));
+	addDomEventListener(dom.value, 'keydown', numericValueKeyDown);
+
+	addDomEventListener(dom.insert, 'click', onInsertClick);
+	addDomEventListener(dom.delete, 'click', onDeleteClick);
 
-                if(String(numericKey) === String(key)){
-                    value.splice(key, 1);
-                }
-            }
+	setName(name_);
+	setValue(value_);
 
-            refresh();
-        }
-    }
 
+	function refresh(){
+		var expandable = type == 'object' || type == 'array';
 
-    function remove(){
-        self.emit('remove');
-        removeChildren();
-    }
+		children.forEach(function(child){
+			child.refresh();
+		});
 
+		dom.collapseExpand.style.display = expandable ? '' : 'none';
 
-    function removeChildren(){
-        var child;
+		if(expanded && expandable){
+			expand();
+		}
+		else{
+			collapse();
+		}
+	}
 
-        while(children.length){
-            child = children.pop();
-            child.removeAllListeners();
-            childrenDiv.removeChild(child.dom);
-        }
-    }
 
+	function collapse(recursive){
+		if(recursive){
+			children.forEach(function(child){
+				child.collapse(true);
+			});
+		}
 
-    function collapse(recursive){
-        containerDiv.classList.remove('expanded');
-        containerDiv.classList.add('collapsed');
+		expanded = false;
 
-        if(recursive){
-            children.forEach(function(child){
-                child.collapse(true);
-            });
-        }
-    }
+		dom.children.style.display = 'none';
+		dom.collapseExpand.className = 'expand';
+		dom.container.classList.add('collapsed');
+		dom.container.classList.remove('expanded');
+	}
 
 
-    function expand(recursive){
-        containerDiv.classList.remove('collapsed');
-        containerDiv.classList.add('expanded');
+	function expand(recursive){
+		var keys;
 
-        if(recursive){
-            children.forEach(function(child){
-                child.expand(true);
-            });
-        }
-    }
+		if(type == 'object'){
+			keys = Object.keys(value);
+		}
+		else if(type == 'array'){
+			keys = value.map(function(v, k){
+				return k;
+			});
+		}
+		else{
+			keys = [];
+		}
 
+		// Remove children that no longer exist
+		for(var i = children.length - 1; i >= 0; i --){
+			var child = children[i];
 
-    function toggleCollapse(){
-        containerDiv.classList.toggle('collapsed');
-        containerDiv.classList.toggle('expanded');
-    }
+			if(keys.indexOf(child.name) == -1){
+				children.splice(i, 1);
+				removeChild(child);
+			}
+		}
 
+		if(type != 'object' && type != 'array'){
+			return collapse();
+		}
 
-    function editName(){
-        editDiv(nameDiv);
-    }
+		keys.forEach(function(key){
+			addChild(key, value[key]);
+		});
 
+		if(recursive){
+			children.forEach(function(child){
+				child.expand(true);
+			});
+		}
 
-    function editNameStop(){
-        var oldName = name,
-            newName = nameDiv.innerText;
+		expanded = true;
+		dom.children.style.display = '';
+		dom.collapseExpand.className = 'collapse';
+		dom.container.classList.add('expanded');
+		dom.container.classList.remove('collapsed');
+	}
+
+
+	function destroy(){
+		var child, event;
+
+		while(event = domEventListeners.pop()){
+			event.element.removeEventListener(event.name, event.fn);
+		}
+
+		while(child = children.pop()){
+			removeChild(child);
+		}
+	}
 
-        nameDiv.classList.remove('edit');
-        nameDiv.removeAttribute('contenteditable');
 
-        if(newName == oldName && newName != ''){
-            return;
-        }
+	function setName(newName){
+		var nameType = typeof newName,
+			oldName = name;
 
-        name = newName;
-        self.emit('rename', oldName, newName);
-    }
+		if(newName === name){
+			return;
+		}
 
+		if(nameType != 'string' && nameType != 'number'){
+			throw new Error('Name must be either string or number, ' + newName);
+		}
 
-    function editNameOnKey(event){
-        var enter = 13,
-            tab = 9;
+		dom.name.innerText = newName;
+		name = newName;
+		self.emit('rename', self, oldName, newName);
+	}
 
-        switch(event.keyCode){
-            case enter:
-                nameDiv.blur();
-                break;
 
-            case tab:
-                editDiv(valueDiv);
-                event.preventDefault();
-                break;
-        }
-    }
+	function setValue(newValue){
+		var oldValue = value,
+			str;
 
+		type = getType(newValue);
 
-    function editValue(){
-        editDiv(valueDiv);
-    }
+		switch(type){
+			case 'null':
+				str = 'null';
+				break;
+			case 'object':
+				str = 'Object[' + Object.keys(newValue).length + ']';
+				break;
 
+			case 'array':
+				str = 'Array[' + newValue.length + ']';
+				break;
 
-    function editValueStop(){
-        var newValue;
+			default:
+				str = newValue;
+				break;
+		}
+
+		dom.value.innerText = str;
+		dom.value.className = 'value ' + type;
 
-        valueDiv.classList.remove('edit');
-        valueDiv.removeAttribute('contenteditable');
-
-        try{
-            newValue = parse(valueDiv.innerText);
-
-            if(value === newValue){
-                refresh();
-            }
-            else{
-                self.value = newValue;
-            }
-        }
-        catch(err){
-            refresh();
-        }
-
-        expand();
-
-
-        // TODO - Think of another way to do this, user can't reference globals, but can still run code in here
-        function parse(){
-            var globals = Object.keys(window);
-
-            return (new Function(globals.join(','), '"use strict"; return JSON.parse(JSON.stringify(' + valueDiv.innerText + '));'))
-                .bind(undefined, new Array(globals.length))
-                ();
-        }
-    }
-
-
-    function editValueOnKey(event){
-        var enter = 13,
-            up = 38,
-            down = 40,
-            newValue;
-
-        if([enter, down, up].indexOf(event.keyCode)== -1){
-            return;
-        }
-
-        if(type == 'number' && enter != event.keyCode){
-            newValue = Number(valueDiv.innerText) + ((down == event.keyCode ? -1 : 1) * (event.shiftKey ? 10 : 1));
-
-            if(!isNaN(newValue)){
-                self.value = newValue;
-                return;
-            }
-        }
-
-        valueDiv.blur();
-    }
-
-
-    function editDiv(div){
-        if(!editable || div.classList.contains('edit')){
-            return;
-        }
-
-        collapse();
-        div.classList.add('edit');
-        div.setAttribute('contenteditable', true);
-        div.focus();
-        document.execCommand('selectAll', false, null);
-    }
-
-
-    function getType(value){
-        var t;
-
-        if(value == null){
-            return 'null';
-        }
-
-        if(Array.isArray(value)){
-            return 'array';
-        }
-
-        t = typeof value;
-
-        switch(t){
-            case 'boolean':
-            case 'number':
-            case 'string':
-            case 'array':
-            case 'object':
-                return t;
-
-            default:
-                throw new Error('"' + t + '" is not a valid JSON type');
-        }
-    }
+		if(newValue === value){
+			return;
+		}
+
+		value = newValue;
+
+		if(type == 'array' || type == 'object'){
+			// Cannot edit objects as string because the formatting is too messy
+			// Would have to either pass as JSON and force user to wrap properties in quotes
+			// Or first JSON stringify the input before passing, this could allow users to reference globals
+
+			// Instead the user can modify individual properties, or just delete the object and start again
+			valueEditable = false;
+
+			if(type == 'array'){
+				// Obviously cannot modify array keys
+				nameEditable = false;
+			}
+		}
+
+		refresh();
+		self.emit('change', name, oldValue, newValue);
+	}
+
+
+	function addChild(key, val){
+		var child;
+
+		for(var i = 0, len = children.length; i < len; i ++){
+			if(children[i].name == key){
+				child = children[i];
+				break;
+			}
+		}
+
+		if(child){
+			child.value = val;
+		}
+		else{
+			child = new JSONView(key, val);
+			child.once('rename', onChildRename);
+			child.on('delete', onChildDelete);
+			child.on('change', onChildChange);
+			children.push(child);
+		}
+
+		dom.children.appendChild(child.dom);
+
+		return child;
+	}
+
+
+	function removeChild(child){
+		if(child.dom.parentNode){
+			dom.children.removeChild(child.dom);
+		}
+
+		child.destroy();
+		child.removeAllListeners();
+	}
+
+
+	function editField(field){
+		var editable = field == 'name' ? nameEditable : valueEditable,
+			element = dom[field];
+
+		if(!editable){
+			return;
+		}
+
+		if(field == 'value' && type == 'string'){
+			element.innerText = '"' + value + '"';
+		}
+
+		if(field == 'name'){
+			edittingName = true;
+		}
+
+		if(field == 'value'){
+			edittingValue = true;
+		}
+
+		element.classList.add('edit');
+		element.setAttribute('contenteditable', true);
+		element.focus();
+		document.execCommand('selectAll', false, null);
+	}
+
+
+	function editFieldStop(field){
+		var element = dom[field];
+		
+		if(field == 'name'){
+			if(!edittingName){
+				return;
+			}
+			edittingName = false;
+		}
+
+		if(field == 'value'){
+			if(!edittingValue){
+				return;
+			}
+			edittingValue = false;
+		}
+		
+		if(field == 'name'){
+			setName(element.innerText);
+		}
+		else{
+			try{
+				setValue(JSON.parse(element.innerText));
+			}
+			catch(err){
+				setValue(element.innerText);
+			}
+		}
+
+		element.classList.remove('edit');
+		element.removeAttribute('contenteditable');
+	}
+
+
+	function editFieldKeyPressed(field, e){
+		switch(e.key){
+			case 'Escape':
+			case 'Enter':
+				editFieldStop(field);
+				break;
+		}
+	}
+
+
+	function editFieldTabPressed(field, e){
+		if(e.key == 'Tab'){
+			editFieldStop(field);
+
+			if(field == 'name'){
+				e.preventDefault();
+				editField('value');
+			}
+			else{
+				editFieldStop(field);
+			}
+		}
+	}
+
+
+	function numericValueKeyDown(e){
+		var increment = 0, currentValue;
+
+		if(type != 'number'){
+			return;
+		}
+
+		switch(e.key){
+			case 'ArrowDown':
+			case 'Down':
+				increment = -1;
+				break;
+
+			case 'ArrowUp':
+			case 'Up':
+				increment = 1;
+				break;
+		}
+
+		if(e.shiftKey){
+			increment *= 10;
+		}
+
+		if(e.ctrlKey || e.metaKey){
+			increment /= 10;
+		}
+
+		if(increment){
+			currentValue = parseFloat(dom.value.innerText);
+
+			if(!isNaN(currentValue)){
+				dom.value.innerText = Number((currentValue + increment).toFixed(10));
+			}
+		}
+	}
+
+
+	function getType(value){
+		var type = typeof value;
+
+		if(type == 'object'){
+			if(value === null){
+				return 'null';
+			}
+
+			if(Array.isArray(value)){
+				return 'array';
+			}
+		}
+
+		return type;
+	}
+
+
+	function onCollapseExpandClick(){
+		if(expanded){
+			collapse();
+		}
+		else{
+			expand();
+		}
+	}
+
+
+	function onInsertClick(){
+		var newName = type == 'array' ? value.length : undefined,
+			child = addChild(newName, null);
+
+		if(type == 'array'){
+			value.push(null);
+			child.editValue();
+		}
+		else{
+			child.editName();
+		}
+	}
+
+
+	function onDeleteClick(){
+		self.emit('delete', self);
+	}
+
+
+	function onChildRename(child, oldName, newName){
+		var allow = newName && type != 'array' && !(newName in value);
+
+		if(allow){
+			value[newName] = child.value;
+			delete value[oldName];
+		}
+		else if(oldName === undefined){
+			// A new node inserted via the UI
+			removeChild(child);
+		}
+		else{
+			// Cannot rename array keys, or duplicate object key names
+			child.name = oldName;
+		}
+
+		child.once('rename', onChildRename);
+	}
+
+
+	function onChildChange(keyPath, oldValue, newValue, recursed){
+		if(!recursed){
+			value[keyPath] = newValue;
+		}
+
+		self.emit('change', name + '.' + keyPath, oldValue, newValue, true);
+	}
+
+
+	function onChildDelete(child){
+		var key = child.name;
+
+		if(type == 'array'){
+			value.splice(key, 1);
+		}
+		else{
+			delete value[key];
+		}
+
+		refresh();
+	}
+
+
+	function addDomEventListener(element, name, fn){
+		element.addEventListener(name, fn);
+		domEventListeners.push({element : element, name : name, fn : fn});
+	}
 }
