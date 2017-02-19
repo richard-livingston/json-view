@@ -11,21 +11,24 @@ A simple JSON viewer with basic edit capabilities. It has styles similar to Chro
 ```js
 var JSONView = require('json-view');
 
-var view = new JSONView({
-    name : 'example',
-    value : {
-        hello : 'world',
-        doubleClick : 'me to edit',
-        a : null,
-        b : true,
-        c : false,
-        d : 1,
-        e : {nested : 'object'},
-        f : [1,2,3]
-    }
+var view = new JSONView('example', {
+    hello : 'world',
+    doubleClick : 'me to edit',
+    a : null,
+    b : true,
+    c : false,
+    d : 1,
+    e : {nested : 'object'},
+    f : [1,2,3]
 });
 
-document.body.appendChild(view.dom);
+// Listen for change events
+view.on('change', function(key, oldValue, newValue){
+    console.log('change', key, oldValue, '=>', newValue);
+});
+
+// Expand recursively
+view.expand(true);
 
 // Inspect window.data on the console and note that it changes with edits.
 window.data = view.value;
