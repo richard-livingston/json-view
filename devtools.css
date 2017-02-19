@@ -1,93 +1,93 @@
 .jsonView{
+    margin-left: 20px;
     font-family: Consolas, "Lucida Console", Menlo, "dejavu sans mono", monospace;
-    font-size: 14px;
-    line-height: 12px;
+    font-size: 16px;
+    line-height: 16px;
     padding: 2px;
     cursor: default;
     color: rgb(66, 66, 66);
     -webkit-user-select: none;
 }
 
-.jsonView .name, .jsonView .separator, .jsonView .value{
-    display: inline;
+.jsonView>div{
+    display: inline-block;
 }
 
-.jsonView .name{
+.jsonView>.children, .jsonView.insert{
+    display: block;
+}
+
+.jsonView>.name{
     color: rgb(136, 19, 145);
 }
 
-.jsonView .separator {
+.jsonView>.separator:before{
+    content: ":";
+}
+
+.jsonView>.separator {
     padding-right: 5px;
 }
 
-.jsonView.null>.value{
+.jsonView>.value.null{
     color: rgb(128, 128, 128);
 }
 
-.jsonView.boolean>.value, .jsonView.number>.value{
+.jsonView>.value.boolean, .jsonView>.value.number{
     color: rgb(28, 0, 207);
 }
 
-.jsonView.string>.value:not(.edit):before, .jsonView.string>.value:not(.edit):after{
+.jsonView>.value.string:not(.edit):before, .jsonView>.value.string:not(.edit):after{
     content: "\"";
 }
 
-.jsonView.string>.value {
+.jsonView>.value.string {
     color: rgb(196, 26, 22);
 }
 
-.jsonView .name:hover, .jsonView .value:hover{
+.jsonView>.name:hover, .jsonView>.value:hover{
     background-color: rgba(56, 121, 217, 0.1);
 }
 
-.jsonView .children{
-    padding-left: 12px;
+.jsonView>.expand, .jsonView>.collapse{
+    min-width: 20px;
+    margin-left: -20px;
+    cursor: pointer;
 }
 
-.jsonView.collapsed .children{
-    display: none;
-}
-
-.jsonView>.name:before{
-    content: "\00A0";
-    min-width: 12px;
-    padding-right: 5px;
-    color: rgb(110, 110, 110);
-}
-
-.jsonView.object.collapsed>.name:before, .jsonView.array.collapsed>.name:before{
+.jsonView>.expand:before{
     content: '\25B6';
 }
 
-.jsonView.object.expanded>.name:before, .jsonView.array.expanded>.name:before{
+.jsonView>.collapse:before{
     content: '\25BC';
 }
 
-.jsonView .value.edit{
+.jsonView>.edit{
     padding: 0px 5px 0px 5px;
     white-space: nowrap;
     overflow: hidden;
-    color: rgb(0, 0, 0);
     background-color: transparent;
 }
 
-.jsonView .value.edit br{
+.jsonView>.edit br{
     display: none;
 }
 
-.jsonView .value.edit *{
+.jsonView>.edit *{
     display: inline;
     white-space: nowrap;
 }
 
-.jsonView input{
-    display: inline;
-    width: 100%;
-    font-family: inherit;
-    font-size: inherit;
+.jsonView>.value.edit{
+    color: rgb(0, 0, 0);
 }
 
-.jsonView .remove{
+.jsonView>.delete:before{
+    content: 'X';
+}
+
+.jsonView>.delete{
     opacity: 0;
     display: inline;
     padding: 3px;
@@ -96,28 +96,29 @@
     color: rgb(150, 150, 150);
 }
 
-.jsonView .value:hover+.remove, .jsonView .remove:hover{
+.jsonView>.delete:hover{
     opacity: 1;
-}
-
-.jsonView .remove:hover{
     color: rgb(0, 0, 0);
     background: rgb(220, 220, 220);
 }
 
-.jsonView .insert{
+.jsonView>.insert:before{
+    content: '+';
+}
+
+.jsonView>.insert{
     display: none;
     color: rgb(150, 150, 150);
     cursor: pointer;
 }
 
-.jsonView.expanded.object>.insert, .jsonView.expanded.array>.insert{
+.jsonView.expanded>.insert, .jsonView.expanded>.insert{
     display: inline-block;
     margin-left: 20px;
     padding: 3px;
 }
 
-.jsonView .insert:hover{
+.jsonView>.insert:hover{
     color: rgb(0, 0, 0);
     background: rgb(220, 220, 220);
 }

@@ -1,11 +1,11 @@
 {
   "name": "json-view-example",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "private": true,
   "dependencies": {
-    "json-view": "0.1.0"
+    "json-view": "../"
   },
   "devDependencies": {
-    "browserify": "^13.1.0"
+    "browserify": "13.1.0"
   }
 }
