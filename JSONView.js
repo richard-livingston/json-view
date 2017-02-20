@@ -142,8 +142,8 @@ function JSONView(name_, value_){
 	dom.container.className = 'jsonView';
 
 	addDomEventListener(dom.collapseExpand, 'click', onCollapseExpandClick);
-	addDomEventListener(dom.value, 'click', expand);
-	addDomEventListener(dom.name, 'click', expand);
+	addDomEventListener(dom.value, 'click', expand.bind(null, false));
+	addDomEventListener(dom.name, 'click', expand.bind(null, false));
 
 	addDomEventListener(dom.name, 'dblclick', editField.bind(null, 'name'));
 	addDomEventListener(dom.name, 'blur', editFieldStop.bind(null, 'name'));
