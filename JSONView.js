@@ -480,7 +480,7 @@ function JSONView(name_, value_){
 			currentValue = parseFloat(dom.value.innerText);
 
 			if(!isNaN(currentValue)){
-				dom.value.innerText = Number((currentValue + increment).toFixed(10));
+				setValue(Number((currentValue + increment).toFixed(10)));
 			}
 		}
 	}
