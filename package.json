@@ -1,30 +1,37 @@
 {
-	"name" : "json-view",
-	"version" : "0.4.0",
-	"files" : [
-		"JSONView.js",
-		"devtools.css",
-		"example"
-	],
-	"main" : "JSONView.js",
-
-	"author" : "Richard Livingston <richard.npm@logoapps.com>",
-	"repository" : {
-		"type" : "git",
-		"url" : "https://github.com/richard-livingston/json-view.git"
-	},
-	"homepage" : "https://richard-livingston.github.io/json-view/",
-
-	"publishConfig" : {
-		"registry" : "https://registry.npmjs.org/"
-	},
-
-	"keywords" : [
-		"json",
-		"viewer",
-		"editor",
-		"view",
-		"edit",
-		"devtools"
-	]
+  "name": "json-tree-view",
+  "version": "0.4.0",
+  "description": "A JSON Tree View Component, for browsering or editing JSON object. Fork from json-view writing by Richard Livingston.",
+  "files": [
+    "JSONView.js",
+    "devtools.css",
+    "example"
+  ],
+  "main": "JSONView.js",
+  "authors": [
+    "Richard Livingston <richard.npm@logoapps.com>",
+    "Lu Yuan <luyuan.china@gmail.com>"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/luyuan/json-tree-view.git"
+  },
+  "bugs": {
+    "url": "https://github.com/luyuan/json-tree-view/issues"
+  },
+  "homepage": "https://richard-livingston.github.io/json-view/",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
+  },
+  "keywords": [
+    "json",
+    "viewer",
+    "editor",
+    "view",
+    "edit",
+    "devtools",
+    "san",
+    "explorer",
+    "tree"
+  ]
 }
