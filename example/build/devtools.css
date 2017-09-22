@@ -30,7 +30,7 @@
     padding-right: 5px;
 }
 
-.jsonView>.value.null{
+.jsonView>.value.null, .jsonView>.value.undefined{
     color: rgb(128, 128, 128);
 }
 

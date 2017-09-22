@@ -11,8 +11,12 @@ module.exports = JSONView;
 util.inherits(JSONView, EE);
 
 
-function JSONView(name_, value_){
+function JSONView(name_, value_, parent_, isRoot_){
 	var self = this;
+
+	if (typeof isRoot_ === 'undefined' && arguments.length < 4) {
+		isRoot_ = true;
+	}
 
 	EE.call(self);
 
@@ -43,6 +47,34 @@ function JSONView(name_, value_){
 		dom : {
 			value : dom.container,
 			enumerable : true
+		},
+
+		isRoot: {
+			get : function(){
+				return isRoot_;
+			}
+		},
+
+		parent: {
+			get: function() {
+				return parent_;
+			}
+		},
+
+		children: {
+			get: function() {
+				var result = null;
+				if (type === 'array') {
+					result = children;
+				}
+				else if (type === 'object') {
+					result = {};
+					children.forEach(function(e) {
+						result[e.name] = e;
+					});
+				}
+				return result;
+			}
 		},
 
 		name : {
@@ -129,6 +161,10 @@ function JSONView(name_, value_){
 
 
 	Object.keys(dom).forEach(function(k){
+		if (k === 'delete' && self.isRoot) {
+			return;
+		}
+
 		var element = dom[k];
 
 		if(k == 'container'){
@@ -271,7 +307,7 @@ function JSONView(name_, value_){
 
 		dom.name.innerText = newName;
 		name = newName;
-		self.emit('rename', self, oldName, newName);
+		self.emit('rename', self, name, oldName, newName, true);
 	}
 
 
@@ -284,6 +320,9 @@ function JSONView(name_, value_){
 		switch(type){
 			case 'null':
 				str = 'null';
+				break;
+			case 'undefined':
+				str = 'undefined';
 				break;
 			case 'object':
 				str = 'Object[' + Object.keys(newValue).length + ']';
@@ -322,7 +361,7 @@ function JSONView(name_, value_){
 		}
 
 		refresh();
-		self.emit('change', name, oldValue, newValue);
+		self.emit('change', self, name, oldValue, newValue);
 	}
 
 
@@ -340,10 +379,11 @@ function JSONView(name_, value_){
 			child.value = val;
 		}
 		else{
-			child = new JSONView(key, val);
-			child.once('rename', onChildRename);
+			child = new JSONView(key, val, self, false);
+			child.on('rename', onChildRename);
 			child.on('delete', onChildDelete);
 			child.on('change', onChildChange);
+			child.on('append', onChildAppend);
 			children.push(child);
 		}
 
@@ -364,11 +404,18 @@ function JSONView(name_, value_){
 
 
 	function editField(field){
+		if(parent_ && parent_.type == 'array'){
+				// Obviously cannot modify array keys
+				nameEditable = false;
+			}
 		var editable = field == 'name' ? nameEditable : valueEditable,
 			element = dom[field];
 
-		if(!editable){
+		if(!editable && (parent_ && parent_.type === 'array')){
+			if (!parent_.inserting) {
+			//throw new Error('Cannot edit an array index.');
 			return;
+			}
 		}
 
 		if(field == 'value' && type == 'string'){
@@ -408,14 +455,25 @@ function JSONView(name_, value_){
 		}
 		
 		if(field == 'name'){
-			setName(element.innerText);
+			var p = self.parent;
+			var edittingNameText = element.innerText;
+			if (p && p.type === 'object' && edittingNameText in p.value) {
+				element.innerText = name;
+				element.classList.remove('edit');
+				element.removeAttribute('contenteditable');
+				//throw new Error('Name exist, ' + edittingNameText);
+			}
+			else {
+				setName.call(self, edittingNameText);
+			}
 		}
 		else{
+			var text = element.innerText;
 			try{
-				setValue(JSON.parse(element.innerText));
+				setValue(text === 'undefined' ? undefined : JSON.parse(text));
 			}
 			catch(err){
-				setValue(element.innerText);
+				setValue(text);
 			}
 		}
 
@@ -498,6 +556,9 @@ function JSONView(name_, value_){
 				return 'array';
 			}
 		}
+		if (type === 'undefined') {
+			return 'undefined';
+		}
 
 		return type;
 	}
@@ -516,10 +577,16 @@ function JSONView(name_, value_){
 	function onInsertClick(){
 		var newName = type == 'array' ? value.length : undefined,
 			child = addChild(newName, null);
-
+		if (child.parent) {
+			child.parent.inserting = true;
+		}
 		if(type == 'array'){
 			value.push(null);
 			child.editValue();
+			child.emit('append', self, value.length - 1, 'value', null);
+			if (child.parent) {
+				child.parent.inserting = false;
+			}
 		}
 		else{
 			child.editName();
@@ -528,40 +595,53 @@ function JSONView(name_, value_){
 
 
 	function onDeleteClick(){
-		self.emit('delete', self);
+		self.emit('delete', self, self.name);
 	}
 
 
-	function onChildRename(child, oldName, newName){
-		var allow = newName && type != 'array' && !(newName in value);
-
+	function onChildRename(child, keyPath, oldName, newName, original){
+		var allow = newName && type != 'array' && !(newName in value) && original;
 		if(allow){
 			value[newName] = child.value;
 			delete value[oldName];
+			if (self.inserting) {
+				child.emit('append', self, newName, 'name', newName);
+				self.inserting = false;
+				return;
+			}
 		}
 		else if(oldName === undefined){
 			// A new node inserted via the UI
-			removeChild(child);
+			original && removeChild(child);
 		}
-		else{
+		else if (original){
 			// Cannot rename array keys, or duplicate object key names
 			child.name = oldName;
+			return;
 		}
+		//value[keyPath] = newName;
 
-		child.once('rename', onChildRename);
+		// child.once('rename', onChildRename);
+		var newKeyPath = child === self ? keyPath : name + '.' + keyPath;
+		self.emit('rename', self, newKeyPath, oldName, newName, false);
 	}
 
 
-	function onChildChange(keyPath, oldValue, newValue, recursed){
+	function onChildAppend(child, keyPath, nameOrValue, newValue){
+		self.emit('append', self, name + '.' + keyPath, nameOrValue, newValue);
+	}
+
+
+	function onChildChange(child, keyPath, oldValue, newValue, recursed){
 		if(!recursed){
 			value[keyPath] = newValue;
 		}
 
-		self.emit('change', name + '.' + keyPath, oldValue, newValue, true);
+		self.emit('change', self, name + '.' + keyPath, oldValue, newValue, true);
 	}
 
 
-	function onChildDelete(child){
+	function onChildDelete(child, keyPath){
 		var key = child.name;
 
 		if(type == 'array'){
@@ -572,6 +652,7 @@ function JSONView(name_, value_){
 		}
 
 		refresh();
+		self.emit('delete', child, name + '.' + keyPath);
 	}
 
 
