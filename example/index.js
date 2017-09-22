@@ -32,3 +32,9 @@ view.expand(true);
 
 document.body.appendChild(view.dom);
 window.view = view;
+
+view.value.f.pop()
+view.value.f.push(9)
+view.value.e.a = 'aaa';
+delete view.value.c;
+view.refresh();

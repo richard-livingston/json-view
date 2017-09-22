@@ -13,9 +13,9 @@ See ./example/build directory.
 
 *index.js*
 ```js
-var JSONView = require('json-tree-view');
+var JSONTreeView = require('json-tree-view');
 
-var view = new JSONView('example', {
+var view = new JSONTreeView('example', {
     hello : 'world',
     doubleClick : 'me to edit',
     a : null,
@@ -43,9 +43,16 @@ view.on('append', function(self, key, nameOrValue, newValue) {
 // Expand recursively
 view.expand(true);
 
+view.withRootName = false;
+
 // Inspect window.data on the console and note that it changes with edits.
 window.data = view.value;
 
+view.value.f.pop()
+view.value.f.push(9)
+view.value.e.a = 'aaa';
+delete view.value.c;
+view.refresh();
 
 ```
 

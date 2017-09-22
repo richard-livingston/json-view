@@ -7,11 +7,11 @@ var util = require('util'),
 	EE = require('events').EventEmitter;
 
 
-module.exports = JSONView;
-util.inherits(JSONView, EE);
+module.exports = JSONTreeView;
+util.inherits(JSONTreeView, EE);
 
 
-function JSONView(name_, value_, parent_, isRoot_){
+function JSONTreeView(name_, value_, parent_, isRoot_){
 	var self = this;
 
 	if (typeof isRoot_ === 'undefined' && arguments.length < 4) {
@@ -26,6 +26,7 @@ function JSONView(name_, value_, parent_, isRoot_){
 	}
 
 	var name, value, type,
+		includingRootName = true,
 		domEventListeners = [], children = [], expanded = false,
 		edittingName = false, edittingValue = false,
 		nameEditable = true, valueEditable = true;
@@ -74,6 +75,15 @@ function JSONView(name_, value_, parent_, isRoot_){
 					});
 				}
 				return result;
+			}
+		},
+
+		withRootName: {
+			get: function() {
+				return includingRootName;
+			},
+			set: function(value) {
+				includingRootName = value;
 			}
 		},
 
@@ -360,8 +370,8 @@ function JSONView(name_, value_, parent_, isRoot_){
 			}
 		}
 
-		refresh();
 		self.emit('change', self, name, oldValue, newValue);
+		refresh();
 	}
 
 
@@ -379,12 +389,13 @@ function JSONView(name_, value_, parent_, isRoot_){
 			child.value = val;
 		}
 		else{
-			child = new JSONView(key, val, self, false);
+			child = new JSONTreeView(key, val, self, false);
 			child.on('rename', onChildRename);
 			child.on('delete', onChildDelete);
 			child.on('change', onChildChange);
 			child.on('append', onChildAppend);
 			children.push(child);
+			child.emit('append', child, key, 'value', val);
 		}
 
 		dom.children.appendChild(child.dom);
@@ -398,6 +409,7 @@ function JSONView(name_, value_, parent_, isRoot_){
 			dom.children.removeChild(child.dom);
 		}
 
+		child.emit('delete', child, child.name);
 		child.destroy();
 		child.removeAllListeners();
 	}
@@ -622,13 +634,18 @@ function JSONView(name_, value_, parent_, isRoot_){
 		//value[keyPath] = newName;
 
 		// child.once('rename', onChildRename);
-		var newKeyPath = child === self ? keyPath : name + '.' + keyPath;
+		var newKeyPath = child === self || (!self.withRootName && self.isRoot)
+			? keyPath
+			: name + '.' + keyPath;
 		self.emit('rename', self, newKeyPath, oldName, newName, false);
 	}
 
 
 	function onChildAppend(child, keyPath, nameOrValue, newValue){
-		self.emit('append', self, name + '.' + keyPath, nameOrValue, newValue);
+		var newKeyPath = !self.withRootName && self.isRoot
+			? keyPath
+			: name + '.' + keyPath;
+		self.emit('append', self, newKeyPath, nameOrValue, newValue);
 	}
 
 
@@ -637,7 +654,10 @@ function JSONView(name_, value_, parent_, isRoot_){
 			value[keyPath] = newValue;
 		}
 
-		self.emit('change', self, name + '.' + keyPath, oldValue, newValue, true);
+		var newKeyPath = !self.withRootName && self.isRoot
+			? keyPath
+			: name + '.' + keyPath;
+		self.emit('change', self, newKeyPath, oldValue, newValue, true);
 	}
 
 
@@ -651,8 +671,11 @@ function JSONView(name_, value_, parent_, isRoot_){
 			delete value[key];
 		}
 
+		var newKeyPath = !self.withRootName && self.isRoot
+			? keyPath
+			: name + '.' + keyPath;
+		self.emit('delete', child, newKeyPath);
 		refresh();
-		self.emit('delete', child, name + '.' + keyPath);
 	}
 
 

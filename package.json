@@ -1,6 +1,6 @@
 {
   "name": "json-tree-view",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "description": "A JSON Tree View Component, for browsering or editing JSON object. Fork from json-view writing by Richard Livingston.",
   "files": [
     "JSONView.js",
