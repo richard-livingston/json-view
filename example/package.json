@@ -1,6 +1,6 @@
 {
   "name": "json-tree-view-example",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "private": true,
   "dependencies": {
     "json-tree-view": "../"
