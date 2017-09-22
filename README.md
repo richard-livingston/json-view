@@ -23,8 +23,17 @@ var view = new JSONView('example', {
 });
 
 // Listen for change events
-view.on('change', function(key, oldValue, newValue){
+view.on('change', function(self, key, oldValue, newValue){
     console.log('change', key, oldValue, '=>', newValue);
+});
+view.on('rename', function(self, key, oldName, newName) {
+    console.log('rename', key, oldName, '=>', newName);
+});
+view.on('delete', function(self, key) {
+    console.log('delete', key);
+});
+view.on('append', function(self, key, nameOrValue, newValue) {
+    console.log('append', key, nameOrValue, '=>', newValue);
 });
 
 // Expand recursively
