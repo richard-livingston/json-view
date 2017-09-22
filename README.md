@@ -1,15 +1,19 @@
-# JSONView
+# JSONTreeView
 
 A simple JSON viewer with basic edit capabilities. It has styles similar to Chrome's dev tools, so it's perfect for building dev tools extensions... **[live example](https://richard-livingston.github.io/json-view/)**.
 
 ### Install with NPM
-`npm i json-view`
+`npm i json-tree-view`
+
+### Build example
+`./example/build.sh`
+See ./example/build directory.
 
 ### Basic usage
 
 *index.js*
 ```js
-var JSONView = require('json-view');
+var JSONView = require('json-tree-view');
 
 var view = new JSONView('example', {
     hello : 'world',
