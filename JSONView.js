@@ -473,6 +473,9 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 		if(readonly) {
 			return;
 		}
+		if(field === 'value' && (type === 'object' || type === 'array')){
+			return
+		}
 		if(parent_ && parent_.type == 'array'){
 				// Obviously cannot modify array keys
 				nameEditable = false;
