@@ -14,6 +14,10 @@
     display: inline-block;
 }
 
+.jsonView.hidden{
+    display: none;
+}
+
 .jsonView>.children, .jsonView.insert{
     display: block;
 }
@@ -103,6 +107,9 @@
     background: rgb(220, 220, 220);
 }
 
+.jsonView.readonly>.insert,.jsonView.readonly>.delete{
+    display: none !important;
+}
 .jsonView>.insert:before{
     content: '+';
 }

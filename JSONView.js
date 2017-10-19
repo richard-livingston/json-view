@@ -25,7 +25,7 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 		name_ = undefined;
 	}
 
-	var name, value, type,
+	var name, value, type, filterText = '', hidden = false, readonly = false,
 		includingRootName = true,
 		domEventListeners = [], children = [], expanded = false,
 		edittingName = false, edittingValue = false,
@@ -75,6 +75,60 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 					});
 				}
 				return result;
+			}
+		},
+
+		readonly: {
+			get: function() {
+				return readonly;
+			},
+			set: function(ro) {
+				readonly = ro;
+				ro ? dom.container.classList.add('readonly')
+						: dom.container.classList.remove('readonly');
+				for (var i in children) {
+					children[i].readonly = ro;
+				}
+			}
+		},
+
+		hidden: {
+			get: function() {
+				return hidden;
+			},
+			set: function(h) {
+				hidden = h;
+				h ? dom.container.classList.add('hidden')
+						: dom.container.classList.remove('hidden');
+				if (!h) {
+					parent_ && (parent_.hidden = h);
+				}
+			}
+		},
+
+		filterText: {
+			get: function() {
+				return filterText;
+			},
+			set: function(text) {
+				filterText = text;
+				if (text) {
+					var key = this.name + '';
+					var value = this.value + '';
+					if (key.indexOf(text) > -1 || value.indexOf(text) > -1) {
+						//this.dom.classList.remove('hidden');
+						this.hidden = false;
+					} else {
+						//this.dom.classList.add('hidden');
+						this.hidden = true;
+					}
+				} else {
+					//this.dom.classList.remove('hidden');
+					this.hidden = false;
+				}
+				for (var i in children) {
+					children[i].filterText = text;
+				}
 			}
 		},
 
@@ -416,6 +470,9 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 
 
 	function editField(field){
+		if(readonly) {
+			return;
+		}
 		if(parent_ && parent_.type == 'array'){
 				// Obviously cannot modify array keys
 				nameEditable = false;
