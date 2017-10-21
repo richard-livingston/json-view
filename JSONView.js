@@ -26,6 +26,7 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 	}
 
 	var name, value, type, filterText = '', hidden = false, readonly = false,
+		readonlyWhenFiltering = false,
 		includingRootName = true,
 		domEventListeners = [], children = [], expanded = false,
 		edittingName = false, edittingValue = false,
@@ -80,14 +81,27 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 
 		readonly: {
 			get: function() {
-				return readonly;
+				return !!(readonly & 1);
 			},
 			set: function(ro) {
-				readonly = ro;
+				readonly = setBit(readonly, 0, +ro);
 				ro ? dom.container.classList.add('readonly')
 						: dom.container.classList.remove('readonly');
 				for (var i in children) {
-					children[i].readonly = ro;
+					children[i].readonly = setBit(readonly, 0, +ro);
+				}
+			}
+		},
+
+		readonlyWhenFiltering: {
+			get: function() {
+				return readonlyWhenFiltering;
+			},
+			set: function(rowf) {
+				readonly = setBit(readonly, 1, +rowf);
+				readonlyWhenFiltering = rowf;
+				for (var i in children) {
+					children[i].readonlyWhenFiltering = rowf;
 				}
 			}
 		},
@@ -113,17 +127,18 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 			set: function(text) {
 				filterText = text;
 				if (text) {
+					if (readonly > 0) {
+						dom.container.classList.add('readonly');
+					}
 					var key = this.name + '';
 					var value = this.value + '';
 					if (key.indexOf(text) > -1 || value.indexOf(text) > -1) {
-						//this.dom.classList.remove('hidden');
 						this.hidden = false;
 					} else {
-						//this.dom.classList.add('hidden');
 						this.hidden = true;
 					}
 				} else {
-					//this.dom.classList.remove('hidden');
+					dom.container.classList.remove('readonly');
 					this.hidden = false;
 				}
 				for (var i in children) {
@@ -261,6 +276,10 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 
 	setName(name_);
 	setValue(value_);
+
+	function setBit(n, i, b) {
+		return (n >> (i + 1) << (i + 1)) | (n % (n >> i << i)) | (+b << i);
+	}
 
 
 	function refresh(){
@@ -470,7 +489,7 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 
 
 	function editField(field){
-		if(readonly) {
+		if(readonly > 0) {
 			return;
 		}
 		if(field === 'value' && (type === 'object' || type === 'array')){
