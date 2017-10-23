@@ -26,7 +26,7 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 	}
 
 	var name, value, type, filterText = '', hidden = false, readonly = false,
-		readonlyWhenFiltering = false,
+		readonlyWhenFiltering = false, alwaysShowRoot = false,
 		includingRootName = true,
 		domEventListeners = [], children = [], expanded = false,
 		edittingName = false, edittingValue = false,
@@ -85,7 +85,7 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 			},
 			set: function(ro) {
 				readonly = setBit(readonly, 0, +ro);
-				ro ? dom.container.classList.add('readonly')
+				!!(readonly & 1) ? dom.container.classList.add('readonly')
 						: dom.container.classList.remove('readonly');
 				for (var i in children) {
 					children[i].readonly = setBit(readonly, 0, +ro);
@@ -100,7 +100,11 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 			set: function(rowf) {
 				readonly = setBit(readonly, 1, +rowf);
 				readonlyWhenFiltering = rowf;
+				(readonly && this.filterText) || !!(readonly & 1)
+						? dom.container.classList.add('readonly')
+								: dom.container.classList.remove('readonly');
 				for (var i in children) {
+					children[i].readonly = setBit(readonly, 1, +rowf);
 					children[i].readonlyWhenFiltering = rowf;
 				}
 			}
@@ -135,14 +139,31 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 					if (key.indexOf(text) > -1 || value.indexOf(text) > -1) {
 						this.hidden = false;
 					} else {
-						this.hidden = true;
+						if (!this.alwaysShowRoot || !isRoot_) {
+							this.hidden = true;
+						}
 					}
 				} else {
-					dom.container.classList.remove('readonly');
+					!this.readonly && dom.container.classList.remove('readonly');
 					this.hidden = false;
 				}
 				for (var i in children) {
 					children[i].filterText = text;
+				}
+			}
+		},
+
+		alwaysShowRoot: {
+			get: function() {
+				return alwaysShowRoot;
+			},
+			set: function(value) {
+				if (isRoot_) {
+					this.hidden = !value;
+				}
+				alwaysShowRoot = value;
+				for (var i in children) {
+					children[i].alwaysShowRoot = value;
 				}
 			}
 		},
@@ -278,7 +299,13 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 	setValue(value_);
 
 	function setBit(n, i, b) {
-		return (n >> (i + 1) << (i + 1)) | (n % (n >> i << i)) | (+b << i);
+		var j = 0;
+		while ((n >> j << j)) {
+			j++;
+		}
+		return i >= j
+				? (n | +b << i )
+						: (n >> (i + 1) << (i + 1)) | (n % (n >> i << i)) | (+b << i);
 	}
 
 
@@ -489,7 +516,7 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 
 
 	function editField(field){
-		if(readonly > 0) {
+		if((readonly > 0 && filterText) || !!(readonly & 1)) {
 			return;
 		}
 		if(field === 'value' && (type === 'object' || type === 'array')){

@@ -4,9 +4,31 @@
     <meta charset="UTF-8">
     <title>JSONView Example</title>
     <link rel="stylesheet" href="devtools.css">
+    <style>
+      ul { user-select:none; }
+    </style>
     <script src="index.js" defer></script>
 </head>
 <body>
-
+<h3>Options</h3>
+<ul>
+  <li>
+    <label for="filter">Filter: </label>
+    <input type="text" id="filter" />
+  </li>
+  <li>
+    <input type="checkbox" id="root" />
+    <label for="root">Always Show root</label>
+  </li>
+  <li>
+    <input type="checkbox" id="rowf" />
+    <label for="rowf">Auto readonly when filtering</label>
+  </li>
+  <li>
+    <input type="checkbox" id="ro" />
+    <label for="ro">Readonly</label>
+  </li>
+</ul>
+<h3>JSON</h3>
 </body>
 </html>

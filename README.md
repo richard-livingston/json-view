@@ -54,6 +54,19 @@ view.value.e.a = 'aaa';
 delete view.value.c;
 view.refresh();
 
+// Do not hide root.
+view.alwaysShowRoot = true;
+
+// Set readonly when filtering words automatically.
+view.readonlyWhenFiltering = true;
+view.filterText = 'a';
+
+// Remove word filter by setting a false value.
+view.filterText = null;
+
+// Cannot change the value of JSON and remove "+" and "x" buttons.
+view.readonly = true;
+
 ```
 
 *index.html* - (**don't forget to include the css**)

@@ -2,9 +2,9 @@
  * Created by r1ch4 on 02/10/2016.
  */
 
-var JSONView = require('json-tree-view');
+var JSONTreeView = require('json-tree-view');
 
-var view = new JSONView('example', {
+var view = new JSONTreeView('example', {
     hello : 'world',
     doubleClick : 'me to edit',
     a : null,
@@ -38,3 +38,26 @@ view.value.f.push(9)
 view.value.e.a = 'aaa';
 delete view.value.c;
 view.refresh();
+
+/*
+view.alwaysShowRoot = true;
+view.readonlyWhenFiltering = true;
+view.filterText = 'a';
+
+view.filterText = null;
+
+view.readonly = true;
+*/
+
+document.getElementById('filter').addEventListener('input', function() {
+    view.filterText = this.value;
+});
+document.getElementById('root').addEventListener('change', function() {
+    view.alwaysShowRoot = !!this.checked;
+});
+document.getElementById('rowf').addEventListener('change', function() {
+    view.readonlyWhenFiltering = !!this.checked;
+});
+document.getElementById('ro').addEventListener('change', function() {
+    view.readonly = !!this.checked;
+});
