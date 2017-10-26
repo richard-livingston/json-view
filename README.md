@@ -39,6 +39,18 @@ view.on('delete', function(self, key) {
 view.on('append', function(self, key, nameOrValue, newValue) {
     console.log('append', key, nameOrValue, '=>', newValue);
 });
+view.on('click', function(self, key, value) {
+    console.log('click', key, '=', value);
+});
+view.on('expand', function(self, key, value) {
+    console.log('expand', key, '=', value);
+});
+view.on('collapse', function(self, key, value) {
+    console.log('collapse', key, '=', value);
+});
+view.on('refresh', function(self, key, value) {
+    console.log('refresh', key, '=', value);
+});
 
 // Expand recursively
 view.expand(true);
@@ -67,6 +79,19 @@ view.filterText = null;
 // Cannot change the value of JSON and remove "+" and "x" buttons.
 view.readonly = true;
 
+document.getElementById('filter').addEventListener('input', function() {
+    view.filterText = this.value;
+});
+document.getElementById('root').addEventListener('change', function() {
+    view.alwaysShowRoot = !!this.checked;
+});
+document.getElementById('rowf').addEventListener('change', function() {
+    view.readonlyWhenFiltering = !!this.checked;
+});
+document.getElementById('ro').addEventListener('change', function() {
+    view.readonly = !!this.checked;
+});
+
 ```
 
 *index.html* - (**don't forget to include the css**)
@@ -78,10 +103,32 @@ view.readonly = true;
     <meta charset="UTF-8">
     <title>JSONView Example</title>
     <link rel="stylesheet" href="devtools.css">
+    <style>
+      ul { user-select:none; }
+    </style>
     <script src="index.js" defer></script>
 </head>
 <body>
-
+<h3>Options</h3>
+<ul>
+  <li>
+    <label for="filter">Filter: </label>
+    <input type="text" id="filter" />
+  </li>
+  <li>
+    <input type="checkbox" id="root" />
+    <label for="root">Always show root</label>
+  </li>
+  <li>
+    <input type="checkbox" id="rowf" />
+    <label for="rowf">Auto readonly when filtering</label>
+  </li>
+  <li>
+    <input type="checkbox" id="ro" />
+    <label for="ro">Readonly</label>
+  </li>
+</ul>
+<h3>JSON</h3>
 </body>
 </html>
 ```

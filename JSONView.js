@@ -159,7 +159,7 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 				return alwaysShowRoot;
 			},
 			set: function(value) {
-				if (isRoot_) {
+				if (isRoot_ && this.filterText) {
 					this.hidden = !value;
 				}
 				alwaysShowRoot = value;

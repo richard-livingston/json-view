@@ -26,19 +26,19 @@
     color: rgb(136, 19, 145);
 }
 
-.jsonView>.colon:before{
+.jsonView>.separator:before{
     content: ":";
 }
 
-.jsonView>.colon{
+.jsonView>.separator{
     padding-right: 5px;
 }
 
-.jsonView>.separator{
+.jsonView>.spacing{
     display:inline-block;
     width:15px;
 }
-.jsonView>.separator::before{
+.jsonView>.spacing::before{
     content: '1';
     visibility:hidden;
 }
