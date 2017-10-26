@@ -38,6 +38,7 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 		name : document.createElement('div'),
 		separator : document.createElement('div'),
 		value : document.createElement('div'),
+		spacing: document.createElement('div'),
 		delete : document.createElement('div'),
 		children : document.createElement('div'),
 		insert : document.createElement('div')
@@ -272,6 +273,9 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 		}
 
 		element.className = k;
+		if (['name', 'separator', 'value', 'spacing'].indexOf(k) > -1) {
+			element.className += ' item';
+		}
 		dom.container.appendChild(element);
 	});
 
@@ -282,14 +286,20 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 	addDomEventListener(dom.name, 'click', expand.bind(null, false));
 
 	addDomEventListener(dom.name, 'dblclick', editField.bind(null, 'name'));
+	addDomEventListener(dom.name, 'click', itemClicked.bind(null, 'name'));
 	addDomEventListener(dom.name, 'blur', editFieldStop.bind(null, 'name'));
-	addDomEventListener(dom.name, 'keypress', editFieldKeyPressed.bind(null, 'name'));
-	addDomEventListener(dom.name, 'keydown', editFieldTabPressed.bind(null, 'name'));
+	addDomEventListener(dom.name, 'keypress',
+			editFieldKeyPressed.bind(null, 'name'));
+	addDomEventListener(dom.name, 'keydown',
+			editFieldTabPressed.bind(null, 'name'));
 
 	addDomEventListener(dom.value, 'dblclick', editField.bind(null, 'value'));
+	addDomEventListener(dom.value, 'click', itemClicked.bind(null, 'value'));
 	addDomEventListener(dom.value, 'blur', editFieldStop.bind(null, 'value'));
-	addDomEventListener(dom.value, 'keypress', editFieldKeyPressed.bind(null, 'value'));
-	addDomEventListener(dom.value, 'keydown', editFieldTabPressed.bind(null, 'value'));
+	addDomEventListener(dom.value, 'keypress',
+			editFieldKeyPressed.bind(null, 'value'));
+	addDomEventListener(dom.value, 'keydown',
+			editFieldTabPressed.bind(null, 'value'));
 	addDomEventListener(dom.value, 'keydown', numericValueKeyDown);
 
 	addDomEventListener(dom.insert, 'click', onInsertClick);
@@ -309,28 +319,33 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 	}
 
 
-	function refresh(){
+	function squarebracketify(exp) {
+		return exp.replace(/\.([0-9]+)/g, '[$1]');
+	}
+
+	function refresh(noEmitting){
 		var expandable = type == 'object' || type == 'array';
 
 		children.forEach(function(child){
-			child.refresh();
+			child.refresh(true);
 		});
 
 		dom.collapseExpand.style.display = expandable ? '' : 'none';
 
 		if(expanded && expandable){
-			expand();
+			expand(false, noEmitting);
 		}
 		else{
-			collapse();
+			collapse(false, noEmitting);
 		}
+		!noEmitting && self.emit('refresh', self, self.name, self.value);
 	}
 
 
-	function collapse(recursive){
+	function collapse(recursive, noEmitting){
 		if(recursive){
 			children.forEach(function(child){
-				child.collapse(true);
+				child.collapse(true, true);
 			});
 		}
 
@@ -340,10 +355,12 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 		dom.collapseExpand.className = 'expand';
 		dom.container.classList.add('collapsed');
 		dom.container.classList.remove('expanded');
+		!noEmitting && (type == 'object' || type == 'array')
+			&& self.emit('collapse', self, self.name, self.value);
 	}
 
 
-	function expand(recursive){
+	function expand(recursive, noEmitting){
 		var keys;
 
 		if(type == 'object'){
@@ -364,7 +381,7 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 
 			if(keys.indexOf(child.name) == -1){
 				children.splice(i, 1);
-				removeChild(child);
+				removeChild(child, noEmitting);
 			}
 		}
 
@@ -378,7 +395,7 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 
 		if(recursive){
 			children.forEach(function(child){
-				child.expand(true);
+				child.expand(true, true);
 			});
 		}
 
@@ -387,6 +404,8 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 		dom.collapseExpand.className = 'collapse';
 		dom.container.classList.add('expanded');
 		dom.container.classList.remove('collapsed');
+		!noEmitting && (type == 'object' || type == 'array')
+			&& self.emit('expand', self, self.name, self.value);
 	}
 
 
@@ -398,7 +417,7 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 		}
 
 		while(child = children.pop()){
-			removeChild(child);
+			removeChild(child, true);
 		}
 	}
 
@@ -448,7 +467,7 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 		}
 
 		dom.value.innerText = str;
-		dom.value.className = 'value ' + type;
+		dom.value.className = 'value item ' + type;
 
 		if(newValue === value){
 			return;
@@ -475,7 +494,19 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 	}
 
 
-	function addChild(key, val){
+	function updateObjectChildCount() {
+		var str;
+		if (type === 'object') {
+			str = 'Object[' + Object.keys(value).length + ']';
+		}
+		if (type === 'array') {
+			str = 'Array[' + value.length + ']';
+		}
+		dom.value.innerText = str;
+	}
+
+
+	function addChild(key, val, noEmitting){
 		var child;
 
 		for(var i = 0, len = children.length; i < len; i ++){
@@ -494,8 +525,14 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 			child.on('delete', onChildDelete);
 			child.on('change', onChildChange);
 			child.on('append', onChildAppend);
+			child.on('click', onChildClick);
+			child.on('expand', onChildExpand);
+			child.on('collapse', onChildCollapse);
+			child.on('refresh', onChildRefresh);
 			children.push(child);
-			child.emit('append', child, key, 'value', val);
+			if (!noEmitting) {
+				child.emit('append', child, key, 'value', val, true);
+			}
 		}
 
 		dom.children.appendChild(child.dom);
@@ -504,12 +541,14 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 	}
 
 
-	function removeChild(child){
+	function removeChild(child, noEmitting){
 		if(child.dom.parentNode){
 			dom.children.removeChild(child.dom);
 		}
 
-		child.emit('delete', child, child.name);
+		if (!noEmitting && child && child.name !== '') {
+			child.emit('delete', child, child.name, child.value, true);
+		}
 		child.destroy();
 		child.removeAllListeners();
 	}
@@ -520,19 +559,19 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 			return;
 		}
 		if(field === 'value' && (type === 'object' || type === 'array')){
-			return
+			return;
 		}
 		if(parent_ && parent_.type == 'array'){
-				// Obviously cannot modify array keys
-				nameEditable = false;
-			}
+			// Obviously cannot modify array keys
+			nameEditable = false;
+		}
 		var editable = field == 'name' ? nameEditable : valueEditable,
 			element = dom[field];
 
 		if(!editable && (parent_ && parent_.type === 'array')){
 			if (!parent_.inserting) {
-			//throw new Error('Cannot edit an array index.');
-			return;
+				// throw new Error('Cannot edit an array index.');
+				return;
 			}
 		}
 
@@ -552,6 +591,12 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 		element.setAttribute('contenteditable', true);
 		element.focus();
 		document.execCommand('selectAll', false, null);
+	}
+
+
+	function itemClicked(field) {
+		self.emit('click', self,
+			!self.withRootName && self.isRoot ? '' : self.name, self.value);
 	}
 
 
@@ -579,7 +624,7 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 				element.innerText = name;
 				element.classList.remove('edit');
 				element.removeAttribute('contenteditable');
-				//throw new Error('Name exist, ' + edittingNameText);
+				// throw new Error('Name exist, ' + edittingNameText);
 			}
 			else {
 				setName.call(self, edittingNameText);
@@ -694,14 +739,14 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 
 	function onInsertClick(){
 		var newName = type == 'array' ? value.length : undefined,
-			child = addChild(newName, null);
+			child = addChild(newName, null, true);
 		if (child.parent) {
 			child.parent.inserting = true;
 		}
 		if(type == 'array'){
 			value.push(null);
 			child.editValue();
-			child.emit('append', self, value.length - 1, 'value', null);
+			child.emit('append', self, value.length - 1, 'value', null, true);
 			if (child.parent) {
 				child.parent.inserting = false;
 			}
@@ -713,7 +758,7 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 
 
 	function onDeleteClick(){
-		self.emit('delete', self, self.name);
+		self.emit('delete', self, self.name, self.value, true);
 	}
 
 
@@ -723,7 +768,7 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 			value[newName] = child.value;
 			delete value[oldName];
 			if (self.inserting) {
-				child.emit('append', self, newName, 'name', newName);
+				child.emit('append', child, newName, 'name', newName, true);
 				self.inserting = false;
 				return;
 			}
@@ -737,21 +782,26 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 			child.name = oldName;
 			return;
 		}
-		//value[keyPath] = newName;
+		// value[keyPath] = newName;
 
 		// child.once('rename', onChildRename);
 		var newKeyPath = child === self || (!self.withRootName && self.isRoot)
 			? keyPath
 			: name + '.' + keyPath;
-		self.emit('rename', self, newKeyPath, oldName, newName, false);
+		if (oldName !== undefined) {
+			self.emit('rename', child, squarebracketify(newKeyPath), oldName, newName,
+				false);
+		}
 	}
 
 
-	function onChildAppend(child, keyPath, nameOrValue, newValue){
+	function onChildAppend(child, keyPath, nameOrValue, newValue, sender){
 		var newKeyPath = !self.withRootName && self.isRoot
 			? keyPath
 			: name + '.' + keyPath;
-		self.emit('append', self, newKeyPath, nameOrValue, newValue);
+		self.emit('append', child, squarebracketify(newKeyPath), nameOrValue,
+			newValue, false);
+		sender && updateObjectChildCount();
 	}
 
 
@@ -763,25 +813,60 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 		var newKeyPath = !self.withRootName && self.isRoot
 			? keyPath
 			: name + '.' + keyPath;
-		self.emit('change', self, newKeyPath, oldValue, newValue, true);
+		self.emit('change', child, squarebracketify(newKeyPath), oldValue, newValue,
+			true);
 	}
 
 
-	function onChildDelete(child, keyPath){
+	function onChildDelete(child, keyPath, deletedValue, sender){
 		var key = child.name;
 
 		if(type == 'array'){
 			value.splice(key, 1);
 		}
-		else{
+		else if (sender) {
 			delete value[key];
 		}
 
 		var newKeyPath = !self.withRootName && self.isRoot
 			? keyPath
 			: name + '.' + keyPath;
-		self.emit('delete', child, newKeyPath);
-		refresh();
+		self.emit('delete', child, squarebracketify(newKeyPath), deletedValue,
+			false);
+		sender && updateObjectChildCount();
+		refresh(true);
+	}
+
+
+	function onChildClick(child, keyPath, value) {
+		var newKeyPath = !self.withRootName && self.isRoot
+			? keyPath
+			: name + '.' + keyPath;
+		self.emit('click', child, squarebracketify(newKeyPath), value);
+	}
+
+
+	function onChildExpand(child, keyPath, value) {
+		var newKeyPath = !self.withRootName && self.isRoot
+			? keyPath
+			: name + '.' + keyPath;
+		self.emit('expand', child, squarebracketify(newKeyPath), value);
+	}
+
+
+	function onChildCollapse(child, keyPath, value) {
+		var newKeyPath = !self.withRootName && self.isRoot
+			? keyPath
+			: name + '.' + keyPath;
+		self.emit('collapse', child, squarebracketify(newKeyPath), value);
+	}
+
+
+	function onChildRefresh(child, keyPath, value) {
+		var newKeyPath = !self.withRootName && self.isRoot
+			? keyPath
+			: name + '.' + keyPath;
+		self.emit('refresh', child, squarebracketify(newKeyPath), value);
 	}
 
 

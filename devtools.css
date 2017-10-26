@@ -30,8 +30,17 @@
     content: ":";
 }
 
-.jsonView>.separator {
+.jsonView>.separator{
     padding-right: 5px;
+}
+
+.jsonView>.spacing{
+    display:inline-block;
+    width:15px;
+}
+.jsonView>.spacing::before{
+    content: '1';
+    visibility:hidden;
 }
 
 .jsonView>.value.null, .jsonView>.value.undefined{
@@ -89,18 +98,26 @@
 }
 
 .jsonView>.delete:before{
-    content: 'X';
+    content: '+';
+    transform: rotate(45deg);
+    -webkit-transform: rotate(45deg);
+    -o-transform: rotate(45deg);
+    -ms-transform: rotate(45deg);
+    display: inline-block;
 }
 
 .jsonView>.delete{
     opacity: 0;
     display: inline;
     padding: 3px;
-    margin-left: 20px;
     cursor: pointer;
     color: rgb(150, 150, 150);
 }
 
+.jsonView>.item:hover~.delete{
+    opacity: 1;
+    color: rgb(150, 150, 150);
+}
 .jsonView>.delete:hover{
     opacity: 1;
     color: rgb(0, 0, 0);

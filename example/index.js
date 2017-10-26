@@ -15,20 +15,34 @@ var view = new JSONTreeView('example', {
     f : [1,2,3]
 }, null);
 
-view.on('change', function(self, key, oldValue, newValue){
-    console.log('change', key, oldValue, '=>', newValue);
-});
-view.on('rename', function(self, key, oldName, newName) {
-    console.log('rename', key, oldName, '=>', newName);
-});
-view.on('delete', function(self, key) {
-    console.log('delete', key);
-});
-view.on('append', function(self, key, nameOrValue, newValue) {
-    console.log('append', key, nameOrValue, '=>', newValue);
-});
 
 view.expand(true);
+view.withRootName = false;
+
+view.on('change', function(self, key, oldValue, newValue){
+    console.log('change', key, oldValue, '=>', newValue, self);
+});
+view.on('rename', function(self, key, oldName, newName) {
+    console.log('rename', key, oldName, '=>', newName, self);
+});
+view.on('delete', function(self, key, value) {
+    console.log('delete', key, '=', value, self);
+});
+view.on('append', function(self, key, nameOrValue, newValue) {
+    console.log('append', key, nameOrValue, '=>', newValue, self);
+});
+view.on('click', function(self, key, value) {
+    console.log('click', key, '=', value, self);
+});
+view.on('expand', function(self, key, value) {
+    console.log('expand', key, '=', value, self);
+});
+view.on('collapse', function(self, key, value) {
+    console.log('collapse', key, '=', value, self);
+});
+view.on('refresh', function(self, key, value) {
+    console.log('refresh', key, '=', value, self);
+});
 
 document.body.appendChild(view.dom);
 window.view = view;
@@ -36,6 +50,7 @@ window.view = view;
 view.value.f.pop()
 view.value.f.push(9)
 view.value.e.a = 'aaa';
+view.value.e.d = 'ddd';
 delete view.value.c;
 view.refresh();
 
