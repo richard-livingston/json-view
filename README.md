@@ -1,6 +1,6 @@
 # JSONTreeView
 
-A simple JSON viewer with basic edit capabilities. It has styles similar to Chrome's dev tools, so it's perfect for building dev tools extensions... **[live example](https://luyuan.github.io/json-tree-view2)**.
+A simple JSON viewer with basic edit capabilities. It has styles similar to Chrome's dev tools, so it's perfect for building dev tools extensions... **[live example](https://luyuan.github.io/json-tree-view)**.
 
 ### Install with NPM
 `npm i json-tree-view`
