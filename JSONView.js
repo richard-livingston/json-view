@@ -547,7 +547,8 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 		}
 
 		if (!noEmitting && child && child.name !== '') {
-			child.emit('delete', child, child.name, child.value, true);
+			child.emit('delete', child, child.name, child.value, child.parent.type,
+				true);
 		}
 		child.destroy();
 		child.removeAllListeners();
@@ -758,7 +759,7 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 
 
 	function onDeleteClick(){
-		self.emit('delete', self, self.name, self.value, true);
+		self.emit('delete', self, self.name, self.value, self.parent.type, true);
 	}
 
 
@@ -818,7 +819,7 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 	}
 
 
-	function onChildDelete(child, keyPath, deletedValue, sender){
+	function onChildDelete(child, keyPath, deletedValue, parentType, sender){
 		var key = child.name;
 
 		if(type == 'array'){
@@ -832,7 +833,7 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 			? keyPath
 			: name + '.' + keyPath;
 		self.emit('delete', child, squarebracketify(newKeyPath), deletedValue,
-			false);
+			parentType, false);
 		sender && updateObjectChildCount();
 		refresh(true);
 	}

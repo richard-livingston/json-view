@@ -25,8 +25,8 @@ view.on('change', function(self, key, oldValue, newValue){
 view.on('rename', function(self, key, oldName, newName) {
     console.log('rename', key, oldName, '=>', newName, self);
 });
-view.on('delete', function(self, key, value) {
-    console.log('delete', key, '=', value, self);
+view.on('delete', function(self, key, value, parentType) {
+    console.log('delete', key, '=', value, parentType, self);
 });
 view.on('append', function(self, key, nameOrValue, newValue) {
     console.log('append', key, nameOrValue, '=>', newValue, self);
