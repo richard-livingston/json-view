@@ -320,7 +320,8 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 
 
 	function squarebracketify(exp) {
-		return exp.replace(/\.([0-9]+)/g, '[$1]');
+		return typeof exp === 'string'
+			? exp.replace(/\.([0-9]+)/g, '[$1]') : exp + '';
 	}
 
 	function refresh(noEmitting){
