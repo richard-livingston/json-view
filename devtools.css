@@ -50,17 +50,17 @@
     background-color: rgba(56, 121, 217, 0.1);
 }
 
-.jsonView>.expand, .jsonView>.collapse{
+.jsonView>.jv-expand, .jsonView>.jv-collapse{
     min-width: 20px;
     margin-left: -20px;
     cursor: pointer;
 }
 
-.jsonView>.expand:before{
+.jsonView>.jv-expand:before{
     content: '\25B6';
 }
 
-.jsonView>.collapse:before{
+.jsonView>.jv-collapse:before{
     content: '\25BC';
 }
 
@@ -113,7 +113,7 @@
     cursor: pointer;
 }
 
-.jsonView.expanded>.insert, .jsonView.expanded>.insert{
+.jsonView.jv-expanded>.insert, .jsonView.jv-expanded>.insert{
     display: inline-block;
     margin-left: 20px;
     padding: 3px;
