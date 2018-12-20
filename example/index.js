@@ -76,3 +76,6 @@ document.getElementById('rowf').addEventListener('change', function() {
 document.getElementById('ro').addEventListener('change', function() {
     view.readonly = !!this.checked;
 });
+document.getElementById('sc').addEventListener('change', function () {
+    view.showCountOfObjectOrArray = !!this.checked;
+});

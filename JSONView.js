@@ -27,6 +27,7 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 
 	var name, value, type, filterText = '', hidden = false, readonly = false,
 		readonlyWhenFiltering = false, alwaysShowRoot = false,
+		showCount = parent_ ? parent_.showCountOfObjectOrArray : true,
 		includingRootName = true,
 		domEventListeners = [], children = [], expanded = false,
 		edittingName = false, edittingValue = false,
@@ -122,6 +123,19 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 				if (!h) {
 					parent_ && (parent_.hidden = h);
 				}
+			}
+		},
+
+		showCountOfObjectOrArray: {
+			get: function() {
+				return showCount;
+			},
+			set: function(show) {
+				showCount = show;
+				for (var i in children) {
+					children[i].showCountOfObjectOrArray = show;
+				}
+				(this.type === 'object' || this.type === 'array') && this.updateCount();
 			}
 		},
 
@@ -231,6 +245,11 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 		refresh : {
 			value : refresh,
 			enumerable : true
+		},
+
+		updateCount: {
+			value: updateObjectChildCount,
+			enumerable: true
 		},
 
 		collapse : {
@@ -443,7 +462,7 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 
 	function setValue(newValue){
 		var oldValue = value,
-			str;
+			str, len;
 
 		type = getType(newValue);
 
@@ -455,11 +474,13 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 				str = 'undefined';
 				break;
 			case 'object':
-				str = 'Object[' + Object.keys(newValue).length + ']';
+				len = Object.keys(newValue).length;
+				str = showCount ? 'Object[' + len + ']' : (len < 1 ? '{}' : '');
 				break;
 
 			case 'array':
-				str = 'Array[' + newValue.length + ']';
+				len = newValue.length;
+				str = showCount ? 'Array[' + len + ']' : (len < 1 ? '[]' : '');
 				break;
 
 			default:
@@ -496,12 +517,14 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 
 
 	function updateObjectChildCount() {
-		var str;
+		var str = '', len;
 		if (type === 'object') {
-			str = 'Object[' + Object.keys(value).length + ']';
+			len = Object.keys(value).length;
+			str = showCount ? 'Object[' + len + ']' : (len < 1 ? '{}' : '');
 		}
 		if (type === 'array') {
-			str = 'Array[' + value.length + ']';
+			len = value.length;
+			str = showCount ? 'Array[' + len + ']' : (len < 1 ? '[]' : '');
 		}
 		dom.value.innerText = str;
 	}

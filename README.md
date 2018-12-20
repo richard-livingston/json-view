@@ -76,6 +76,9 @@ view.filterText = 'a';
 // Remove word filter by setting a false value.
 view.filterText = null;
 
+// Always show count of object or array.
+view.showCountOfObjectOrArray = true;
+
 // Cannot change the value of JSON and remove "+" and "x" buttons.
 view.readonly = true;
 
@@ -90,6 +93,9 @@ document.getElementById('rowf').addEventListener('change', function() {
 });
 document.getElementById('ro').addEventListener('change', function() {
     view.readonly = !!this.checked;
+});
+document.getElementById('sc').addEventListener('change', function () {
+    view.showCountOfObjectOrArray = !!this.checked;
 });
 
 ```
@@ -121,11 +127,15 @@ document.getElementById('ro').addEventListener('change', function() {
   </li>
   <li>
     <input type="checkbox" id="rowf" />
-    <label for="rowf">Auto readonly when filtering</label>
+    <label for="rowf">Automatically set to readonly when filtering</label>
   </li>
   <li>
     <input type="checkbox" id="ro" />
     <label for="ro">Readonly</label>
+  </li>
+  <li>
+    <input type="checkbox" id="sc" checked />
+    <label for="sc">Show count of Object or Array</label>
   </li>
 </ul>
 <h3>JSON</h3>
