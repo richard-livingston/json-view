@@ -847,7 +847,9 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 		var key = child.name;
 
 		if(type == 'array'){
-			value.splice(key, 1);
+			if (key === keyPath) {
+				value.splice(key, 1);
+			}
 		}
 		else if (sender) {
 			delete value[key];
