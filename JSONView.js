@@ -92,9 +92,9 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 				!!(readonly & 1) ? dom.container.classList.add('readonly')
 						: dom.container.classList.remove('readonly');
 				for (var i in children) {
-          if (typeof children[i] === 'object') {
-            children[i].readonly = setBit(readonly, 0, +ro);
-          }
+					if (typeof children[i] === 'object') {
+						children[i].readonly = setBit(readonly, 0, +ro);
+					}
 				}
 			}
 		},
@@ -110,8 +110,10 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 						? dom.container.classList.add('readonly')
 								: dom.container.classList.remove('readonly');
 				for (var i in children) {
-					children[i].readonly = setBit(readonly, 1, +rowf);
-					children[i].readonlyWhenFiltering = rowf;
+					if (typeof children[i] === 'object') {
+						children[i].readonly = setBit(readonly, 1, +rowf);
+						children[i].readonlyWhenFiltering = rowf;
+					}
 				}
 			}
 		},
@@ -137,7 +139,9 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 			set: function(show) {
 				showCount = show;
 				for (var i in children) {
-					children[i].showCountOfObjectOrArray = show;
+					if (typeof children[i] === 'object') {
+						children[i].showCountOfObjectOrArray = show;
+					}
 				}
 				(this.type === 'object' || this.type === 'array') && this.updateCount();
 			}
@@ -170,7 +174,9 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 					this.hidden = false;
 				}
 				for (var i in children) {
-					children[i].filterText = text;
+					if (typeof children[i] === 'object') {
+						children[i].filterText = text;
+					}
 				}
 			}
 		},
@@ -185,9 +191,9 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 				}
 				alwaysShowRoot = value;
 				for (var i in children) {
-          if (typeof children[i] === 'object') {
-            children[i].alwaysShowRoot = value;
-          }
+					if (typeof children[i] === 'object') {
+						children[i].alwaysShowRoot = value;
+					}
 				}
 			}
 		},
