@@ -92,7 +92,9 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 				!!(readonly & 1) ? dom.container.classList.add('readonly')
 						: dom.container.classList.remove('readonly');
 				for (var i in children) {
-					children[i].readonly = setBit(readonly, 0, +ro);
+          if (typeof children[i] === 'object') {
+            children[i].readonly = setBit(readonly, 0, +ro);
+          }
 				}
 			}
 		},
@@ -183,7 +185,9 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 				}
 				alwaysShowRoot = value;
 				for (var i in children) {
-					children[i].alwaysShowRoot = value;
+          if (typeof children[i] === 'object') {
+            children[i].alwaysShowRoot = value;
+          }
 				}
 			}
 		},
