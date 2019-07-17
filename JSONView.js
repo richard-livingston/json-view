@@ -153,6 +153,9 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 					}
 					var key = this.name + '';
 					var value = this.value + '';
+					if (this.type === 'object' || this.type === 'array') {
+						value = '';
+					}
 					if (key.indexOf(text) > -1 || value.indexOf(text) > -1) {
 						this.hidden = false;
 					} else {
