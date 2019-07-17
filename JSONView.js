@@ -25,8 +25,10 @@ function JSONTreeView(name_, value_, parent_, isRoot_){
 		name_ = undefined;
 	}
 
-	var name, value, type, filterText = '', hidden = false, readonly = false,
-		readonlyWhenFiltering = false, alwaysShowRoot = false,
+	var name, value, type, filterText = '', hidden = false,
+		readonly = parent_ ? parent_.readonly : false,
+		readonlyWhenFiltering = parent_ ? parent_.readonlyWhenFiltering : false,
+		alwaysShowRoot = false,
 		showCount = parent_ ? parent_.showCountOfObjectOrArray : true,
 		includingRootName = true,
 		domEventListeners = [], children = [], expanded = false,
