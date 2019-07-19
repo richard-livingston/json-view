@@ -1,6 +1,15 @@
 ChangeLog
 ========
 
+0.4.12
+-------
+ - [Bugfix]
+    - Fix bug when setting a value on a JSONTreeView object.
+ - [Update]
+    - Change keyPath paramater of handlers from a string to an array.
+    - Update example.
+
+
 0.4.11
 -------
  - [Bugfix]
