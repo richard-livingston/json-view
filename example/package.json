@@ -1,9 +1,9 @@
 {
-  "name": "json-view-example",
-  "version": "0.3.0",
+  "name": "json-tree-view-example",
+  "version": "0.3.4",
   "private": true,
   "dependencies": {
-    "json-view": "../"
+    "json-tree-view": "file:.."
   },
   "devDependencies": {
     "browserify": "13.1.0"
