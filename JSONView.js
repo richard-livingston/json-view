@@ -191,9 +191,9 @@ function JSONView(name_, value_){
 		expanded = false;
 
 		dom.children.style.display = 'none';
-		dom.collapseExpand.className = 'expand';
-		dom.container.classList.add('collapsed');
-		dom.container.classList.remove('expanded');
+		dom.collapseExpand.className = 'jv-expand';
+		dom.container.classList.add('jv-collapsed');
+		dom.container.classList.remove('jv-expanded');
 	}
 
 
@@ -238,9 +238,9 @@ function JSONView(name_, value_){
 
 		expanded = true;
 		dom.children.style.display = '';
-		dom.collapseExpand.className = 'collapse';
-		dom.container.classList.add('expanded');
-		dom.container.classList.remove('collapsed');
+		dom.collapseExpand.className = 'jv-collapse';
+		dom.container.classList.add('jv-expanded');
+		dom.container.classList.remove('jv-collapsed');
 	}
 
 
